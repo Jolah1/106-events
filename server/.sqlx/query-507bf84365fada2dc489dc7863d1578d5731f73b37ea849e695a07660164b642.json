@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO users (email) VALUES ($1)\n         ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email\n         RETURNING id, email, phone, name, created_at",
+  "query": "UPDATE users SET role = COALESCE($2, role), name = COALESCE($3, name)\n         WHERE id = $1\n         RETURNING id, email, name, role, created_at",
   "describe": {
     "columns": [
       {
@@ -27,23 +27,23 @@
       },
       {
         "ordinal": 2,
-        "name": "phone",
-        "type_info": "Text",
-        "origin": {
-          "Table": {
-            "table": "users",
-            "name": "phone"
-          }
-        }
-      },
-      {
-        "ordinal": 3,
         "name": "name",
         "type_info": "Text",
         "origin": {
           "Table": {
             "table": "users",
             "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "role",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "role"
           }
         }
       },
@@ -61,16 +61,18 @@
     ],
     "parameters": {
       "Left": [
+        "Uuid",
+        "Text",
         "Text"
       ]
     },
     "nullable": [
       false,
       true,
-      true,
+      false,
       false,
       false
     ]
   },
-  "hash": "0fb91eceee5b6e9cac4e08436a7418edd72e7c4b2e3204104201bd1dbfa5aba7"
+  "hash": "507bf84365fada2dc489dc7863d1578d5731f73b37ea849e695a07660164b642"
 }

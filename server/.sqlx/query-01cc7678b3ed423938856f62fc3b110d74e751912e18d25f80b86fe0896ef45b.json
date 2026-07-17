@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE guests SET\n            name = COALESCE($2, name),\n            phone = CASE WHEN $3 THEN $4 ELSE phone END,\n            email = CASE WHEN $5 THEN $6 ELSE email END,\n            plus_ones = COALESCE($7, plus_ones),\n            dietary = COALESCE($8, dietary),\n            notes = COALESCE($9, notes),\n            updated_at = now()\n        WHERE id = $1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Bool",
+        "Text",
+        "Bool",
+        "Text",
+        "Int4",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "01cc7678b3ed423938856f62fc3b110d74e751912e18d25f80b86fe0896ef45b"
+}

@@ -13,7 +13,8 @@ door — even offline.
 - **Dashboard** — React + TypeScript + Vite, TailwindCSS v4, shadcn/ui, Motion,
   TanStack Query, React Router.
 - **Auth** — passwordless email magic links; DB-backed sessions in an
-  httpOnly cookie. No third-party auth.
+  httpOnly cookie. No third-party auth. Sign-in is invite-only: staff are added
+  by an admin, not self-served.
 
 ## Repository layout
 
@@ -49,6 +50,70 @@ Slugs are transliterated, not stripped: "Ọláṣubọmi & Ṣadé" becomes
 `/e/olasubomi-sade`. See `domain::slug` — it folds Yoruba, Igbo and Hausa
 letters (and European accents) to ASCII. Titles in scripts with no Latin base
 get a random slug instead of a bad romanisation.
+
+## One workspace, invited staff
+
+106 Events is a single event-planning company, not a marketplace of unrelated
+organizers. Every signed-in staff member sees and works **every** event — a
+coordinator has to be able to run the door at a wedding the founder booked.
+Events carry a `created_by` for attribution, but it never scopes access, and
+removing a staff member sets it to `NULL` rather than cascading their events
+away (see migration `0004`): the event outlives the employment.
+
+Because "anyone with an email" is no longer the right answer to "who works
+here", **sign-in is invite-only**. `POST /api/auth/verify` only signs in an
+email that already has a `users` row; `request-link` mints and rate-limits a
+token for any address but only *emails* it to a member, so the endpoint can't
+be used to discover who is on the team.
+
+Admins manage the roster under `/api/team` (`role` is `admin` or `staff`).
+The last admin can't be demoted or removed, and nobody can remove themselves —
+otherwise the team could lock itself out. Door-only roles will arrive with the
+check-in phase, when there is a check-in screen to restrict.
+
+Somebody has to be able to sign in before anyone can be invited, so
+`ADMIN_EMAILS` (comma-separated) seeds admins on startup — idempotently, and
+only ever promoting, never demoting. **Set it, or nobody can log in.**
+
+## Guest lists
+
+Guests belong to an event and are invited to individual parts of it, so one
+person can be on the engagement list, the reception list, or both. A headcount
+is always `1 + plus_ones`. `guest_invites` carries a redundant `event_id` on
+purpose: both its foreign keys pin the same event, which makes inviting a guest
+to *another* event's sub-event a constraint violation rather than a bug.
+
+Phone numbers are normalized to E.164 on the way in (`domain::phone`), because
+the RSVP phase has to match an inbound WhatsApp sender against a row typed into
+a spreadsheet months earlier. `0806 688 2563`, `+234 (0) 806 688 2563` and
+`8066882563` all store as `+2348066882563`. Numbers written with a `+` are kept
+as dialled, so foreign guests import cleanly. Within one event a phone number
+(or email) identifies exactly one guest — that uniqueness is what CSV
+re-imports dedupe on.
+
+### CSV import
+
+`POST /api/events/{id}/guests/import` takes the spreadsheet the organizer
+already has. Columns are matched by meaning, not by template: "Full Name",
+"Mobile Number" and "WhatsApp Number" all land where you'd expect, and
+unrecognised columns are reported rather than silently dropped. Pass
+`dryRun: true` for a preview — the dashboard always does this first, so the
+organizer sees the bad rows before committing. It runs the real import inside a
+transaction and rolls it back, so the counts it reports are what will actually
+happen.
+
+Two rules exist because re-importing is normal, not exceptional:
+
+- **A column the file doesn't have never clears the field.** Uploading a plain
+  name-and-phone list must not reset plus-ones and dietary needs typed into the
+  dashboard. An empty plus-ones cell is "unknown", not zero.
+- **Importing adds invitations and never removes them.** Organizers import one
+  list per part, and the second upload must not undo the first.
+
+Bad rows fail alone, each reported with the line number to look at in Excel.
+Note that `domain::csv_import` normalizes CRLF up front: the csv crate's line
+counter is off by one on CRLF files, which is exactly what every real export
+is, and an error pointing at the wrong row is worse than no error at all.
 
 ## Development setup
 
@@ -115,21 +180,23 @@ Integration tests use `#[sqlx::test]` — each test gets its own database with
 migrations applied, using the connection from `.env`. They cover the full
 magic-link auth flow (single-use tokens, rate limiting, session revocation),
 the events API (slug collisions, ownership, validation, sub-event lifecycle
-including the PATCH `endsAt` absent/null/value semantics), and the public pages
+including the PATCH `endsAt` absent/null/value semantics), the public pages
 (link-preview tags, timezone rendering, HTML escaping of organizer input,
-cover-image URL rules, 404s).
+cover-image URL rules, 404s), and guest lists (phone normalization, CSV import
+including dry runs, re-import dedupe, per-row errors, and the cross-event
+invitation constraint).
 
 ## Environment variables
 
-See `server/.env.example` for the full list: `DATABASE_URL`, `BIND_ADDR`,
-`APP_BASE_URL`, `PUBLIC_BASE_URL`, `SMTP_URL`, `EMAIL_FROM`, `COOKIE_SECURE`,
-`DASHBOARD_DIST`.
+See `server/.env.example` for the full list: `DATABASE_URL`, `ADMIN_EMAILS`,
+`BIND_ADDR`, `APP_BASE_URL`, `PUBLIC_BASE_URL`, `SMTP_URL`, `EMAIL_FROM`,
+`COOKIE_SECURE`, `DASHBOARD_DIST`.
 
 ## Status
 
 - [x] Phase 1 — auth + event/sub-event creation (dashboard + API)
 - [x] Phase 2 — public event pages with WhatsApp/Instagram-ready OG tags
-- [ ] Phase 3 — guest list management (CSV import, plus-ones)
+- [x] Phase 3 — guest list management (CSV import, plus-ones)
 - [ ] Phase 4 — RSVP capture (link, WhatsApp replies, SMS fallback)
 - [ ] Phase 5 — automated reminders
 - [ ] Phase 6 — ticketing via Paystack/Flutterwave (Naira, kobo integers)

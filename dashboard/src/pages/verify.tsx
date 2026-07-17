@@ -31,11 +31,15 @@ export function VerifyPage() {
         navigate("/", { replace: true })
       })
       .catch((err) => {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Couldn't reach the server. Try the link again in a moment.",
-        )
+        if (err instanceof ApiError && err.status === 403) {
+          // The link was valid but the email isn't on the team. Say so plainly
+          // rather than showing a generic access error.
+          setError("This email isn't on the 106 Events team. Ask an admin to add you.")
+        } else if (err instanceof ApiError) {
+          setError(err.message)
+        } else {
+          setError("Couldn't reach the server. Try the link again in a moment.")
+        }
       })
   }, [params, client, navigate])
 

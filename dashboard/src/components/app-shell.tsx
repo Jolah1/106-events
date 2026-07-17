@@ -1,4 +1,4 @@
-import { LogOut, Plus } from "lucide-react"
+import { LogOut, Plus, Users } from "lucide-react"
 import { Link, Navigate, Outlet, useNavigate } from "react-router"
 
 import { CommandPalette } from "@/components/command-palette"
@@ -76,8 +76,21 @@ export function AppShell() {
             <DropdownMenuContent align="end" className="min-w-52">
               <DropdownMenuLabel className="font-normal text-muted-foreground">
                 {user.email ?? user.phone}
+                {user.role === "admin" && (
+                  <span className="ml-2 rounded bg-primary/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-primary">
+                    Admin
+                  </span>
+                )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {user.role === "admin" && (
+                <DropdownMenuItem asChild>
+                  <Link to="/team">
+                    <Users data-slot="icon" />
+                    Team
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onSelect={() =>
                   logout.mutate(undefined, { onSuccess: () => navigate("/login") })

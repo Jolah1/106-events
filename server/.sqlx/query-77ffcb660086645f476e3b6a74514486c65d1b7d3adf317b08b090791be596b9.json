@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO events (user_id, title, slug, description, cover_image_url, timezone)\n             VALUES ($1, $2, $3, $4, $5, $6)\n             ON CONFLICT (slug) DO NOTHING\n             RETURNING id, title, slug, description, cover_image_url, timezone, created_at, updated_at",
+  "query": "INSERT INTO events (created_by, title, slug, description, cover_image_url, timezone)\n             VALUES ($1, $2, $3, $4, $5, $6)\n             ON CONFLICT (slug) DO NOTHING\n             RETURNING id, title, slug, description, cover_image_url, timezone, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -113,5 +113,5 @@
       false
     ]
   },
-  "hash": "5e9bf5a32142b615acfaa8b824408b2880377137ffc996fcaa274191d308961b"
+  "hash": "77ffcb660086645f476e3b6a74514486c65d1b7d3adf317b08b090791be596b9"
 }

@@ -158,7 +158,7 @@ fn validate_sub_event_input(input: &SubEventInput) -> Result<(), AppError> {
 /// than a unique-violation error, which would abort the enclosing transaction.
 async fn insert_event(
     tx: &mut Transaction<'_, Postgres>,
-    user_id: Uuid,
+    created_by: Uuid,
     body: &CreateEventBody,
     title: &str,
     timezone: &str,
@@ -174,11 +174,11 @@ async fn insert_event(
         };
         let inserted = sqlx::query_as!(
             Event,
-            "INSERT INTO events (user_id, title, slug, description, cover_image_url, timezone)
+            "INSERT INTO events (created_by, title, slug, description, cover_image_url, timezone)
              VALUES ($1, $2, $3, $4, $5, $6)
              ON CONFLICT (slug) DO NOTHING
              RETURNING id, title, slug, description, cover_image_url, timezone, created_at, updated_at",
-            user_id,
+            created_by,
             title,
             slug,
             body.description.trim(),
@@ -276,7 +276,9 @@ async fn create_event(
 
 async fn list_events(
     State(state): State<AppState>,
-    CurrentUser(user): CurrentUser,
+    // Any signed-in staff member sees the whole company's events, so this only
+    // authenticates — it doesn't scope the query.
+    CurrentUser(_user): CurrentUser,
 ) -> Result<Json<Vec<EventSummary>>, AppError> {
     let rows = sqlx::query!(
         r#"
@@ -287,11 +289,9 @@ async fn list_events(
                max(se.starts_at) AS last_starts_at
         FROM events e
         LEFT JOIN sub_events se ON se.event_id = e.id
-        WHERE e.user_id = $1
         GROUP BY e.id
         ORDER BY min(se.starts_at) DESC NULLS LAST, e.created_at DESC
         "#,
-        user.id
     )
     .fetch_all(&state.pool)
     .await?;
@@ -317,17 +317,15 @@ async fn list_events(
     ))
 }
 
-async fn fetch_owned_event(
-    pool: &PgPool,
-    event_id: Uuid,
-    user_id: Uuid,
-) -> Result<Event, AppError> {
+/// Any event, since every staff member works the whole workspace. The caller
+/// still has to be authenticated to reach here; this is scoped by existence,
+/// not ownership.
+async fn fetch_event(pool: &PgPool, event_id: Uuid) -> Result<Event, AppError> {
     sqlx::query_as!(
         Event,
         "SELECT id, title, slug, description, cover_image_url, timezone, created_at, updated_at
-         FROM events WHERE id = $1 AND user_id = $2",
-        event_id,
-        user_id
+         FROM events WHERE id = $1",
+        event_id
     )
     .fetch_optional(pool)
     .await?
@@ -349,10 +347,10 @@ async fn fetch_sub_events(pool: &PgPool, event_id: Uuid) -> Result<Vec<SubEvent>
 
 async fn get_event(
     State(state): State<AppState>,
-    CurrentUser(user): CurrentUser,
+    CurrentUser(_user): CurrentUser,
     Path(id): Path<Uuid>,
 ) -> Result<Json<EventDetail>, AppError> {
-    let event = fetch_owned_event(&state.pool, id, user.id).await?;
+    let event = fetch_event(&state.pool, id).await?;
     let sub_events = fetch_sub_events(&state.pool, id).await?;
     Ok(Json(EventDetail { event, sub_events }))
 }
@@ -369,7 +367,7 @@ pub struct UpdateEventBody {
 
 async fn update_event(
     State(state): State<AppState>,
-    CurrentUser(user): CurrentUser,
+    CurrentUser(_user): CurrentUser,
     Path(id): Path<Uuid>,
     Json(body): Json<UpdateEventBody>,
 ) -> Result<Json<Event>, AppError> {
@@ -383,20 +381,19 @@ async fn update_event(
         Event,
         r#"
         UPDATE events SET
-            title = COALESCE($3, title),
-            description = COALESCE($4, description),
-            timezone = COALESCE($5, timezone),
+            title = COALESCE($2, title),
+            description = COALESCE($3, description),
+            timezone = COALESCE($4, timezone),
             cover_image_url = CASE
-                WHEN $6::text IS NULL THEN cover_image_url
-                WHEN $6 = '' THEN NULL
-                ELSE $6
+                WHEN $5::text IS NULL THEN cover_image_url
+                WHEN $5 = '' THEN NULL
+                ELSE $5
             END,
             updated_at = now()
-        WHERE id = $1 AND user_id = $2
+        WHERE id = $1
         RETURNING id, title, slug, description, cover_image_url, timezone, created_at, updated_at
         "#,
         id,
-        user.id,
         title,
         body.description.as_deref().map(str::trim),
         timezone,
@@ -411,13 +408,12 @@ async fn update_event(
 
 async fn delete_event(
     State(state): State<AppState>,
-    CurrentUser(user): CurrentUser,
+    CurrentUser(_user): CurrentUser,
     Path(id): Path<Uuid>,
 ) -> Result<StatusCode, AppError> {
     sqlx::query_scalar!(
-        "DELETE FROM events WHERE id = $1 AND user_id = $2 RETURNING id",
-        id,
-        user.id
+        "DELETE FROM events WHERE id = $1 RETURNING id",
+        id
     )
     .fetch_optional(&state.pool)
     .await?
@@ -427,11 +423,11 @@ async fn delete_event(
 
 async fn create_sub_event(
     State(state): State<AppState>,
-    CurrentUser(user): CurrentUser,
+    CurrentUser(_user): CurrentUser,
     Path(event_id): Path<Uuid>,
     Json(input): Json<SubEventInput>,
 ) -> Result<impl IntoResponse, AppError> {
-    fetch_owned_event(&state.pool, event_id, user.id).await?;
+    fetch_event(&state.pool, event_id).await?;
 
     let mut tx = state.pool.begin().await?;
     let position = sqlx::query_scalar!(
@@ -473,7 +469,7 @@ where
 
 async fn update_sub_event(
     State(state): State<AppState>,
-    CurrentUser(user): CurrentUser,
+    CurrentUser(_user): CurrentUser,
     Path(id): Path<Uuid>,
     Json(body): Json<UpdateSubEventBody>,
 ) -> Result<Json<SubEvent>, AppError> {
@@ -484,7 +480,7 @@ async fn update_sub_event(
         }
     }
 
-    // ends_at uses a sentinel pair: $6 says "update it", $7 is the new value
+    // ends_at uses a sentinel pair: $5 says "update it", $6 is the new value
     // (which may be NULL to clear). The DB CHECK still guards ordering.
     let (set_ends_at, ends_at) = match body.ends_at {
         None => (false, None),
@@ -495,21 +491,19 @@ async fn update_sub_event(
         SubEvent,
         r#"
         UPDATE sub_events se SET
-            name = COALESCE($3, se.name),
-            description = COALESCE($4, se.description),
-            starts_at = COALESCE($5, se.starts_at),
-            ends_at = CASE WHEN $6 THEN $7 ELSE se.ends_at END,
-            venue_name = COALESCE($8, se.venue_name),
-            venue_address = COALESCE($9, se.venue_address),
-            position = COALESCE($10, se.position),
+            name = COALESCE($2, se.name),
+            description = COALESCE($3, se.description),
+            starts_at = COALESCE($4, se.starts_at),
+            ends_at = CASE WHEN $5 THEN $6 ELSE se.ends_at END,
+            venue_name = COALESCE($7, se.venue_name),
+            venue_address = COALESCE($8, se.venue_address),
+            position = COALESCE($9, se.position),
             updated_at = now()
-        FROM events e
-        WHERE se.id = $1 AND e.id = se.event_id AND e.user_id = $2
+        WHERE se.id = $1
         RETURNING se.id, se.event_id, se.name, se.slug, se.description, se.starts_at,
                   se.ends_at, se.venue_name, se.venue_address, se.is_default, se.position
         "#,
         id,
-        user.id,
         body.name.as_deref().map(str::trim),
         body.description.as_deref().map(str::trim),
         body.starts_at,
@@ -534,7 +528,7 @@ async fn update_sub_event(
 
 async fn delete_sub_event(
     State(state): State<AppState>,
-    CurrentUser(user): CurrentUser,
+    CurrentUser(_user): CurrentUser,
     Path(id): Path<Uuid>,
 ) -> Result<StatusCode, AppError> {
     let mut tx = state.pool.begin().await?;
@@ -543,10 +537,9 @@ async fn delete_sub_event(
     let event_id = sqlx::query_scalar!(
         "SELECT e.id FROM events e
          JOIN sub_events se ON se.event_id = e.id
-         WHERE se.id = $1 AND e.user_id = $2
+         WHERE se.id = $1
          FOR UPDATE OF e",
-        id,
-        user.id
+        id
     )
     .fetch_optional(&mut *tx)
     .await?

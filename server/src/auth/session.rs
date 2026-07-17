@@ -20,7 +20,26 @@ pub struct User {
     pub email: Option<String>,
     pub phone: Option<String>,
     pub name: String,
+    /// 'admin' or 'staff'. Admins manage the team; the CHECK on users.role is
+    /// the source of truth for the allowed values.
+    pub role: String,
     pub created_at: DateTime<Utc>,
+}
+
+impl User {
+    pub fn is_admin(&self) -> bool {
+        self.role == "admin"
+    }
+
+    /// Guards admin-only actions (managing the team). Returns 403, not 404:
+    /// the caller is a legitimate staff member, just not entitled to this.
+    pub fn require_admin(&self) -> Result<(), AppError> {
+        if self.is_admin() {
+            Ok(())
+        } else {
+            Err(AppError::Forbidden)
+        }
+    }
 }
 
 /// Extractor for authenticated API routes. Rejects with 401 when the session
@@ -41,7 +60,7 @@ impl FromRequestParts<AppState> for CurrentUser {
         let user = sqlx::query_as!(
             User,
             r#"
-            SELECT u.id, u.email, u.phone, u.name, u.created_at
+            SELECT u.id, u.email, u.phone, u.name, u.role, u.created_at
             FROM sessions s
             JOIN users u ON u.id = s.user_id
             WHERE s.token_hash = $1 AND s.expires_at > now()

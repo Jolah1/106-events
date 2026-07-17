@@ -26,6 +26,16 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("running migrations")?;
 
+    server::routes::api::team::seed_admins(&pool, &config.admin_emails)
+        .await
+        .context("seeding admins")?;
+    if config.admin_emails.is_empty() {
+        tracing::warn!(
+            "ADMIN_EMAILS not set: nobody can sign in until an admin is seeded. \
+             Set ADMIN_EMAILS to a comma-separated list and restart."
+        );
+    }
+
     let mailer = Mailer::from_config(&config)?;
     let bind_addr = config.bind_addr;
     let state = AppState {

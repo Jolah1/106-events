@@ -11,6 +11,7 @@ axum = { version = "0.8", features = ["macros"] }
 axum-extra = { version = "0.10", features = ["cookie"] }
 chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = "0.10"
+csv = "1.4.0"
 data-encoding = "2"
 dotenvy = "0.15"
 getrandom = "0.3"

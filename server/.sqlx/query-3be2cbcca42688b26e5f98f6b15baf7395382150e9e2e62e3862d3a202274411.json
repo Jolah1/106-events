@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        UPDATE sub_events se SET\n            name = COALESCE($3, se.name),\n            description = COALESCE($4, se.description),\n            starts_at = COALESCE($5, se.starts_at),\n            ends_at = CASE WHEN $6 THEN $7 ELSE se.ends_at END,\n            venue_name = COALESCE($8, se.venue_name),\n            venue_address = COALESCE($9, se.venue_address),\n            position = COALESCE($10, se.position),\n            updated_at = now()\n        FROM events e\n        WHERE se.id = $1 AND e.id = se.event_id AND e.user_id = $2\n        RETURNING se.id, se.event_id, se.name, se.slug, se.description, se.starts_at,\n                  se.ends_at, se.venue_name, se.venue_address, se.is_default, se.position\n        ",
+  "query": "\n        UPDATE sub_events se SET\n            name = COALESCE($2, se.name),\n            description = COALESCE($3, se.description),\n            starts_at = COALESCE($4, se.starts_at),\n            ends_at = CASE WHEN $5 THEN $6 ELSE se.ends_at END,\n            venue_name = COALESCE($7, se.venue_name),\n            venue_address = COALESCE($8, se.venue_address),\n            position = COALESCE($9, se.position),\n            updated_at = now()\n        WHERE se.id = $1\n        RETURNING se.id, se.event_id, se.name, se.slug, se.description, se.starts_at,\n                  se.ends_at, se.venue_name, se.venue_address, se.is_default, se.position\n        ",
   "describe": {
     "columns": [
       {
@@ -128,7 +128,6 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Uuid",
         "Text",
         "Text",
         "Timestamptz",
@@ -153,5 +152,5 @@
       false
     ]
   },
-  "hash": "4a11e213e5d92c04beb48e3cfc55b4c77514d4a0100118ee29df81905a087f5d"
+  "hash": "3be2cbcca42688b26e5f98f6b15baf7395382150e9e2e62e3862d3a202274411"
 }

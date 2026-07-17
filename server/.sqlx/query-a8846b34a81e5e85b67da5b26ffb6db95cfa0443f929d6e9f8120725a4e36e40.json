@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO users (email, role) VALUES ($1, 'admin')\n             ON CONFLICT (email) DO UPDATE SET role = 'admin'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a8846b34a81e5e85b67da5b26ffb6db95cfa0443f929d6e9f8120725a4e36e40"
+}

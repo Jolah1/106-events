@@ -17,6 +17,10 @@ pub struct Config {
     pub cookie_secure: bool,
     pub session_ttl_days: i64,
     pub login_token_ttl_minutes: i64,
+    /// Staff who are admins from the first boot, seeded on startup. Everyone
+    /// else is invited from inside the app — but somebody has to be able to
+    /// sign in and do the inviting, and that can't come from the app itself.
+    pub admin_emails: Vec<String>,
     /// If set, the built dashboard SPA is served from this directory.
     pub dashboard_dist: Option<PathBuf>,
 }
@@ -47,6 +51,12 @@ impl Config {
             cookie_secure: var("COOKIE_SECURE").is_some_and(|v| v == "true" || v == "1"),
             session_ttl_days: 30,
             login_token_ttl_minutes: 15,
+            admin_emails: var("ADMIN_EMAILS")
+                .unwrap_or_default()
+                .split(',')
+                .map(|e| e.trim().to_lowercase())
+                .filter(|e| !e.is_empty())
+                .collect(),
             dashboard_dist: var("DASHBOARD_DIST").map(PathBuf::from),
         })
     }

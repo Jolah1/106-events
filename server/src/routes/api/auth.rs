@@ -66,6 +66,17 @@ async fn request_link(
         return Err(AppError::RateLimited);
     }
 
+    // Only invited staff receive a link — but the endpoint has to behave the
+    // same for everyone, or the difference (an email that arrives, a 429 that
+    // eventually fires) would reveal who is on the team. So a token is minted
+    // and rate-limited regardless; it is only emailed, and only returned as a
+    // dev link, when the address actually belongs to a member. A token minted
+    // for a stranger maps to no user, so `verify` rejects it either way.
+    let is_member = sqlx::query_scalar!("SELECT 1 FROM users WHERE email = $1", email)
+        .fetch_optional(&state.pool)
+        .await?
+        .is_some();
+
     let NewToken { raw, hash } = tokens::generate_token();
     sqlx::query!(
         "INSERT INTO login_tokens (identifier, token_hash, expires_at)
@@ -77,16 +88,20 @@ async fn request_link(
     .execute(&state.pool)
     .await?;
 
-    let link = format!("{}/auth/verify?token={raw}", state.config.app_base_url);
-    state
-        .mailer
-        .send_magic_link(&email, &link)
-        .await
-        .map_err(AppError::Internal)?;
+    let mut dev_link = None;
+    if is_member {
+        let link = format!("{}/auth/verify?token={raw}", state.config.app_base_url);
+        state
+            .mailer
+            .send_magic_link(&email, &link)
+            .await
+            .map_err(AppError::Internal)?;
 
-    // In development (no SMTP) the link is returned so the flow is usable
-    // end-to-end without email infrastructure.
-    let dev_link = state.mailer.is_dev().then_some(link);
+        // In development (no SMTP) the link is returned so the flow is usable
+        // end-to-end without email infrastructure.
+        dev_link = state.mailer.is_dev().then_some(link);
+    }
+
     Ok(Json(json!({ "sent": true, "devLink": dev_link })))
 }
 
@@ -111,16 +126,17 @@ async fn verify(
     .await?
     .ok_or(AppError::Unauthorized)?;
 
+    // Staff are invited, not self-served: a valid magic link only signs in an
+    // email that already has a users row. A working inbox is no longer enough
+    // to get an account — otherwise anyone could create events for the agency.
     let user = sqlx::query_as!(
         User,
-        // No-op DO UPDATE so RETURNING works for existing users too.
-        "INSERT INTO users (email) VALUES ($1)
-         ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
-         RETURNING id, email, phone, name, created_at",
+        "SELECT id, email, phone, name, role, created_at FROM users WHERE email = $1",
         identifier
     )
-    .fetch_one(&state.pool)
-    .await?;
+    .fetch_optional(&state.pool)
+    .await?
+    .ok_or(AppError::Forbidden)?;
 
     let session_token = create_session(&state.pool, user.id, state.config.session_ttl_days).await?;
     let cookie = Cookie::build((SESSION_COOKIE, session_token))

@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO guest_invites (guest_id, sub_event_id, event_id)\n         SELECT $1, unnest($2::uuid[]), $3\n         ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "046c7e66629c34f1ed10feeca256612e7fcaf8ed91ec78c8959330638dac15d1"
+}

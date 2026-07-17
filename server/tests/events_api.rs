@@ -149,44 +149,57 @@ async fn validation_rejects_bad_input(pool: PgPool) {
 }
 
 #[sqlx::test]
-async fn ownership_is_enforced(pool: PgPool) {
+async fn events_are_shared_across_the_workspace(pool: PgPool) {
     let app = app(pool.clone());
-    let (_, alice) = seed_user(&pool, "alice@example.com").await;
-    let (_, bob) = seed_user(&pool, "bob@example.com").await;
+    // Two staff members of the one agency. 106 Events is a single workspace:
+    // whoever books an event, any colleague can work it.
+    let (_, founder) = seed_user(&pool, "founder@example.com").await;
+    let (_, coordinator) = seed_user(&pool, "coordinator@example.com").await;
 
     let (_, body, _) = send(
         &app,
         Method::POST,
         "/api/events",
         Some(wedding_body()),
-        Some(&alice),
+        Some(&founder),
     )
     .await;
     let event_id = body["id"].as_str().unwrap().to_string();
     let sub_event_id = body["subEvents"][0]["id"].as_str().unwrap().to_string();
 
-    // Bob can't see, edit, or delete Alice's event.
+    // The coordinator sees the founder's event in the list...
+    let (status, list, _) = send(&app, Method::GET, "/api/events", None, Some(&coordinator)).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1, "the workspace's events are shared");
+
+    // ...and can open, edit, and edit the parts of it.
     let uri = format!("/api/events/{event_id}");
-    for (method, body) in [
-        (Method::GET, None),
-        (Method::PATCH, Some(json!({ "title": "Hijacked" }))),
-        (Method::DELETE, None),
-    ] {
-        let (status, _, _) = send(&app, method, &uri, body, Some(&bob)).await;
-        assert_eq!(status, StatusCode::NOT_FOUND);
-    }
+    let (status, _, _) = send(&app, Method::GET, &uri, None, Some(&coordinator)).await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, edited, _) = send(
+        &app,
+        Method::PATCH,
+        &uri,
+        Some(json!({ "title": "Renamed by a colleague" })),
+        Some(&coordinator),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(edited["title"], "Renamed by a colleague");
     let (status, _, _) = send(
         &app,
         Method::PATCH,
         &format!("/api/sub-events/{sub_event_id}"),
-        Some(json!({ "name": "Hijacked" })),
-        Some(&bob),
+        Some(json!({ "name": "Retimed" })),
+        Some(&coordinator),
     )
     .await;
-    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(status, StatusCode::OK);
 
-    // Unauthenticated requests are rejected outright.
+    // A stranger with no session still gets nothing.
     let (status, _, _) = send(&app, Method::GET, "/api/events", None, None).await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    let (status, _, _) = send(&app, Method::GET, &uri, None, None).await;
     assert_eq!(status, StatusCode::UNAUTHORIZED);
 }
 
