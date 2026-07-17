@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block styles %}
+.hero { position: relative; }
+.hero-img {
+  display: block;
+  width: 100%;
+  height: clamp(180px, 42vw, 320px);
+  object-fit: cover;
+}
+.hero-img-fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(15,14,12,0.15) 40%, var(--ink));
+}
+.masthead { padding: 40px 0 8px; text-align: center; }
+.masthead .wordmark { font-size: 15px; letter-spacing: 0.04em; color: var(--muted); }
+.head { padding: 28px 0 8px; text-align: center; }
+.head h1 { font-size: clamp(30px, 8vw, 46px); margin: 0; }
+.datestamp {
+  margin: 14px 0 0;
+  color: var(--gold);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.blurb { margin: 20px 0 0; color: var(--muted); white-space: pre-line; text-align: center; }
+.schedule { margin: 40px 0 0; }
+.schedule h2 {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+  margin: 0 0 14px;
+}
+.part {
+  background: var(--raised);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin: 0 0 12px;
+}
+.part h3 { margin: 0 0 10px; font-size: 20px; }
+.part dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 15px; }
+.part dt { color: var(--muted); white-space: nowrap; }
+.part dd { margin: 0; }
+.venue-name { display: block; }
+.venue-addr { display: block; color: var(--muted); font-size: 14px; }
+.directions {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--gold);
+  font-size: 14px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--hairline);
+}
+.directions:hover { color: var(--gold-bright); }
+{% endblock %}
+
+{% block body %}
+{% if let Some(cover) = cover_image_url %}
+<div class="hero">
+  <img class="hero-img" src="{{ cover }}" alt="" fetchpriority="high">
+  <div class="hero-img-fade"></div>
+</div>
+{% else %}
+<div class="masthead"><span class="wordmark"><b>106</b> Events</span></div>
+<div class="seam"></div>
+{% endif %}
+
+<main class="wrap">
+  <header class="head">
+    <h1 class="display">{{ title }}</h1>
+    <p class="datestamp">{{ date_summary }}</p>
+    {% if !description.is_empty() %}<p class="blurb">{{ description }}</p>{% endif %}
+  </header>
+
+  <section class="schedule">
+    {% if !single %}<h2>Schedule</h2>{% endif %}
+    {% for part in parts %}
+    <article class="part">
+      {% if !single %}<h3 class="display">{{ part.name }}</h3>{% endif %}
+      <dl>
+        <dt>When</dt>
+        <dd>{{ part.day }}<br>{{ part.time }}</dd>
+        {% if part.has_venue %}
+        <dt>Where</dt>
+        <dd>
+          {% if !part.venue_name.is_empty() %}<span class="venue-name">{{ part.venue_name }}</span>{% endif %}
+          {% if !part.venue_address.is_empty() %}<span class="venue-addr">{{ part.venue_address }}</span>{% endif %}
+          {% if let Some(query) = part.map_query %}
+          <a class="directions" href="https://www.google.com/maps/search/?api=1&amp;query={{ query|urlencode_strict }}" target="_blank" rel="noopener noreferrer">Get directions →</a>
+          {% endif %}
+        </dd>
+        {% endif %}
+      </dl>
+    </article>
+    {% endfor %}
+  </section>
+</main>
+{% endblock %}

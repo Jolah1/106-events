@@ -1,0 +1,126 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/fraunces";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: 'Fraunces Variable', 'Georgia', serif;
+    --font-sans: 'Inter Variable', sans-serif;
+    --color-gold: var(--gold);
+    --color-gold-bright: var(--gold-bright);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * 106 Events — dark-only "ink & gilt" theme.
+ * Warm near-blacks (hue ~80, never pure #000) with gold reserved for the
+ * primary action and the gilt seam. Values are duplicated onto .dark so
+ * shadcn components behave identically either way.
+ */
+:root,
+.dark {
+    --background: oklch(0.16 0.005 80);
+    --foreground: oklch(0.92 0.018 90);
+    --card: oklch(0.19 0.006 80);
+    --card-foreground: oklch(0.92 0.018 90);
+    --popover: oklch(0.21 0.007 80);
+    --popover-foreground: oklch(0.92 0.018 90);
+    --primary: oklch(0.76 0.124 88);
+    --primary-foreground: oklch(0.17 0.01 80);
+    --secondary: oklch(0.24 0.008 80);
+    --secondary-foreground: oklch(0.92 0.018 90);
+    --muted: oklch(0.24 0.008 80);
+    --muted-foreground: oklch(0.66 0.02 88);
+    --accent: oklch(0.25 0.01 82);
+    --accent-foreground: oklch(0.95 0.02 90);
+    --destructive: oklch(0.64 0.19 25);
+    --border: oklch(0.92 0.04 90 / 11%);
+    --input: oklch(0.92 0.04 90 / 15%);
+    --ring: oklch(0.76 0.124 88 / 55%);
+    --gold: oklch(0.76 0.124 88);
+    --gold-bright: oklch(0.85 0.105 92);
+    --chart-1: oklch(0.76 0.124 88);
+    --chart-2: oklch(0.66 0.02 88);
+    --chart-3: oklch(0.5 0.015 85);
+    --chart-4: oklch(0.38 0.012 82);
+    --chart-5: oklch(0.28 0.01 80);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.19 0.006 80);
+    --sidebar-foreground: oklch(0.92 0.018 90);
+    --sidebar-primary: oklch(0.76 0.124 88);
+    --sidebar-primary-foreground: oklch(0.17 0.01 80);
+    --sidebar-accent: oklch(0.24 0.008 80);
+    --sidebar-accent-foreground: oklch(0.95 0.02 90);
+    --sidebar-border: oklch(0.92 0.04 90 / 11%);
+    --sidebar-ring: oklch(0.76 0.124 88 / 55%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground antialiased;
+    }
+  html {
+    @apply font-sans;
+    }
+}
+
+@layer utilities {
+  /* The signature: a gilded hairline, like the gilt edge of an invitation. */
+  .gilt-seam {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(0.76 0.124 88 / 65%) 25%,
+      oklch(0.9 0.09 92) 50%,
+      oklch(0.76 0.124 88 / 65%) 75%,
+      transparent
+    );
+  }
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+}

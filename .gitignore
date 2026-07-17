@@ -1,0 +1,10 @@
+target/
+node_modules/
+dist/
+.env
+!.sqlx
+*.log
+.DS_Store
+
+# Local Claude Code permission state, not project configuration.
+.claude/settings.local.json*
