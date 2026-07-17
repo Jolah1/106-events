@@ -8,11 +8,19 @@ import { api, ApiError } from "@/lib/api"
 import type {
   AppConfig,
   CreateEventInput,
+  CreateGuestInput,
   Event as EventModel,
   EventDetail,
   EventSummary,
+  Guest,
+  GuestPatch,
+  ImportInput,
+  ImportReport,
+  InviteInput,
+  Role,
   SubEvent,
   SubEventInput,
+  TeamMember,
   User,
 } from "@/lib/types"
 
@@ -125,5 +133,106 @@ export function useDeleteSubEvent(eventId: string) {
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/api/sub-events/${id}`),
     onSuccess: () => client.invalidateQueries({ queryKey: ["events", eventId] }),
+  })
+}
+
+export function useGuests(eventId: string) {
+  return useQuery({
+    queryKey: ["guests", eventId],
+    queryFn: () => api.get<Guest[]>(`/api/events/${eventId}/guests`),
+  })
+}
+
+export function useCreateGuest(eventId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreateGuestInput) =>
+      api.post<Guest>(`/api/events/${eventId}/guests`, input),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["guests", eventId] }),
+  })
+}
+
+export function useUpdateGuest(eventId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...patch }: GuestPatch & { id: string }) =>
+      api.patch<Guest>(`/api/guests/${id}`, patch),
+    // Optimistic: the server normalizes phone numbers, so onSettled below
+    // refetches and the displayed value snaps to whatever it actually stored.
+    onMutate: async ({ id, ...patch }) => {
+      await client.cancelQueries({ queryKey: ["guests", eventId] })
+      const previous = client.getQueryData<Guest[]>(["guests", eventId])
+      client.setQueryData<Guest[]>(["guests", eventId], (guests) =>
+        guests?.map((g) => (g.id === id ? { ...g, ...patch } : g)),
+      )
+      return { previous }
+    },
+    onError: (_err, _patch, context) => {
+      if (context?.previous) client.setQueryData(["guests", eventId], context.previous)
+    },
+    onSettled: () => client.invalidateQueries({ queryKey: ["guests", eventId] }),
+  })
+}
+
+export function useDeleteGuest(eventId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/guests/${id}`),
+    onMutate: async (id) => {
+      await client.cancelQueries({ queryKey: ["guests", eventId] })
+      const previous = client.getQueryData<Guest[]>(["guests", eventId])
+      client.setQueryData<Guest[]>(["guests", eventId], (guests) =>
+        guests?.filter((g) => g.id !== id),
+      )
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) client.setQueryData(["guests", eventId], context.previous)
+    },
+    onSettled: () => client.invalidateQueries({ queryKey: ["guests", eventId] }),
+  })
+}
+
+export function useImportGuests(eventId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: ImportInput) =>
+      api.post<ImportReport>(`/api/events/${eventId}/guests/import`, input),
+    onSuccess: (report) => {
+      // A dry run deliberately changed nothing, so leave the cache alone.
+      if (!report.dryRun) client.invalidateQueries({ queryKey: ["guests", eventId] })
+    },
+  })
+}
+
+export function useTeam() {
+  return useQuery({
+    queryKey: ["team"],
+    queryFn: () => api.get<TeamMember[]>("/api/team"),
+  })
+}
+
+export function useInviteMember() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: InviteInput) => api.post<TeamMember>("/api/team", input),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["team"] }),
+  })
+}
+
+export function useUpdateMember() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...patch }: { id: string; role?: Role; name?: string }) =>
+      api.post<TeamMember>(`/api/team/${id}`, patch),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["team"] }),
+  })
+}
+
+export function useRemoveMember() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/team/${id}`),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["team"] }),
   })
 }

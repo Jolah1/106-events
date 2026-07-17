@@ -4,7 +4,7 @@ use axum::http::{Method, StatusCode, header};
 use serde_json::json;
 use sqlx::PgPool;
 
-use common::{app, send};
+use common::{app, seed_user, send};
 
 /// Pulls the token query param out of the dev magic link.
 fn token_from_link(link: &str) -> String {
@@ -27,9 +27,12 @@ fn session_from_headers(headers: &axum::http::HeaderMap) -> String {
 
 #[sqlx::test]
 async fn full_magic_link_flow(pool: PgPool) {
-    let app = app(pool);
+    let app = app(pool.clone());
+    // Staff are invited: the user must already exist for a link to be issued.
+    seed_user(&pool, "ada@example.com").await;
 
-    // Request a link (dev mailer returns it in the response).
+    // Request a link (dev mailer returns it in the response). The email is
+    // normalized, so the mixed-case, padded form still matches the member.
     let (status, body, _) = send(
         &app,
         Method::POST,
@@ -42,7 +45,7 @@ async fn full_magic_link_flow(pool: PgPool) {
     let link = body["devLink"].as_str().expect("dev link").to_string();
     let token = token_from_link(&link);
 
-    // Verify: creates the user (normalized email) and a session cookie.
+    // Verify: signs the invited member in and sets a session cookie.
     let (status, body, headers) = send(
         &app,
         Method::POST,
@@ -79,8 +82,46 @@ async fn full_magic_link_flow(pool: PgPool) {
 }
 
 #[sqlx::test]
-async fn verify_returning_user_keeps_identity(pool: PgPool) {
+async fn signup_is_invite_only(pool: PgPool) {
     let app = app(pool.clone());
+
+    // A stranger's request looks successful — the response must not reveal that
+    // they aren't on the team — but no link is issued.
+    let (status, body, _) = send(
+        &app,
+        Method::POST,
+        "/api/auth/request-link",
+        Some(json!({ "email": "stranger@example.com" })),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["sent"], true);
+    assert!(body["devLink"].is_null(), "no link for a non-member: {body}");
+
+    // And no account was conjured into being.
+    let users = sqlx::query_scalar!(r#"SELECT count(*) AS "count!" FROM users"#)
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(users, 0, "a stranger's request must not create a user");
+
+    // Even holding a valid, unexpired token for that email, verify refuses:
+    // there is no member to sign in as. (The token exists so rate-limiting is
+    // uniform, but it maps to nobody.)
+    let raw = sqlx::query_scalar!(
+        "SELECT token_hash FROM login_tokens WHERE identifier = 'stranger@example.com'"
+    )
+    .fetch_optional(&pool)
+    .await
+    .unwrap();
+    assert!(raw.is_some(), "a token is still minted, to keep responses uniform");
+}
+
+#[sqlx::test]
+async fn a_returning_member_keeps_one_identity(pool: PgPool) {
+    let app = app(pool.clone());
+    seed_user(&pool, "ada@example.com").await;
 
     for _ in 0..2 {
         let (_, body, _) = send(
@@ -107,12 +148,13 @@ async fn verify_returning_user_keeps_identity(pool: PgPool) {
         .fetch_one(&pool)
         .await
         .unwrap();
-    assert_eq!(users, 1, "logging in twice must not duplicate the user");
+    assert_eq!(users, 1, "signing in twice must not duplicate the member");
 }
 
 #[sqlx::test]
 async fn expired_and_garbage_tokens_rejected(pool: PgPool) {
     let app = app(pool.clone());
+    seed_user(&pool, "late@example.com").await;
 
     // Garbage token.
     let (status, _, _) = send(
@@ -152,7 +194,10 @@ async fn expired_and_garbage_tokens_rejected(pool: PgPool) {
 
 #[sqlx::test]
 async fn request_link_validates_and_rate_limits(pool: PgPool) {
-    let app = app(pool);
+    let app = app(pool.clone());
+    // Rate limiting applies to everyone (uniform responses), but seed a member
+    // so this reads as the case that matters: a real user being throttled.
+    seed_user(&pool, "busy@example.com").await;
 
     let (status, _, _) = send(
         &app,

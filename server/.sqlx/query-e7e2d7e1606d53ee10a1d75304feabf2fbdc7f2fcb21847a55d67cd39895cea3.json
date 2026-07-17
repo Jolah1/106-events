@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT u.id, u.email, u.phone, u.name, u.created_at\n            FROM sessions s\n            JOIN users u ON u.id = s.user_id\n            WHERE s.token_hash = $1 AND s.expires_at > now()\n            ",
+  "query": "INSERT INTO users (email, name, role, invited_by) VALUES ($1, $2, $3, $4)\n         RETURNING id, email, name, role, created_at",
   "describe": {
     "columns": [
       {
@@ -27,23 +27,23 @@
       },
       {
         "ordinal": 2,
-        "name": "phone",
-        "type_info": "Text",
-        "origin": {
-          "Table": {
-            "table": "users",
-            "name": "phone"
-          }
-        }
-      },
-      {
-        "ordinal": 3,
         "name": "name",
         "type_info": "Text",
         "origin": {
           "Table": {
             "table": "users",
             "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "role",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "role"
           }
         }
       },
@@ -61,16 +61,19 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Text",
+        "Text",
+        "Text",
+        "Uuid"
       ]
     },
     "nullable": [
       false,
       true,
-      true,
+      false,
       false,
       false
     ]
   },
-  "hash": "789bf44be84c1a9a0ed8832ecd9266d168e96e8ab831058e6c178f3b52f40bc4"
+  "hash": "e7e2d7e1606d53ee10a1d75304feabf2fbdc7f2fcb21847a55d67cd39895cea3"
 }

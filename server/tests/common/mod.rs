@@ -33,6 +33,7 @@ pub fn test_config() -> Config {
         cookie_secure: false,
         session_ttl_days: 30,
         login_token_ttl_minutes: 15,
+        admin_emails: Vec::new(),
         dashboard_dist: None,
     }
 }
@@ -89,12 +90,22 @@ pub async fn get_html(app: &Router, uri: &str) -> (StatusCode, String, HeaderMap
     (status, String::from_utf8_lossy(&bytes).into_owned(), headers)
 }
 
-/// Creates a user + session directly in the DB; returns (user_id, raw session
-/// token) for authenticated requests.
+/// Creates a staff user + session directly in the DB; returns (user_id, raw
+/// session token) for authenticated requests.
 pub async fn seed_user(pool: &PgPool, email: &str) -> (Uuid, String) {
+    seed_member(pool, email, "staff").await
+}
+
+/// Creates an admin user + session.
+pub async fn seed_admin(pool: &PgPool, email: &str) -> (Uuid, String) {
+    seed_member(pool, email, "admin").await
+}
+
+pub async fn seed_member(pool: &PgPool, email: &str, role: &str) -> (Uuid, String) {
     let user_id = sqlx::query_scalar!(
-        "INSERT INTO users (email) VALUES ($1) RETURNING id",
-        email
+        "INSERT INTO users (email, role) VALUES ($1, $2) RETURNING id",
+        email,
+        role
     )
     .fetch_one(pool)
     .await

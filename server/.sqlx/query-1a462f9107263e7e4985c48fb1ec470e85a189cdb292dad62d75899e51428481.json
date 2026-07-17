@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT e.id FROM events e\n         JOIN sub_events se ON se.event_id = e.id\n         WHERE se.id = $1 AND e.user_id = $2\n         FOR UPDATE OF e",
+  "query": "SELECT e.id FROM events e\n         JOIN sub_events se ON se.event_id = e.id\n         WHERE se.id = $1\n         FOR UPDATE OF e",
   "describe": {
     "columns": [
       {
@@ -17,7 +17,6 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
         "Uuid"
       ]
     },
@@ -25,5 +24,5 @@
       false
     ]
   },
-  "hash": "9b65afef40866a5a4b2a39ef510f6edec5dbb7718e61317bb5aa1410253cb17d"
+  "hash": "1a462f9107263e7e4985c48fb1ec470e85a189cdb292dad62d75899e51428481"
 }
