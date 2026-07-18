@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT count(*) AS \"count!\" FROM check_ins c\n           JOIN attendees a ON a.id = c.attendee_id\n           WHERE a.guest_id = $1 AND c.sub_event_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "bb3e133bf23644247473d738370787cc5f460af21e2e277c6b526b35022e8b09"
+}

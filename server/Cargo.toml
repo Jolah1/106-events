@@ -16,6 +16,7 @@ data-encoding = "2"
 dotenvy = "0.15"
 getrandom = "0.3"
 lettre = { version = "0.11", default-features = false, features = ["builder", "hostname", "smtp-transport", "tokio1-rustls-tls", "pool"] }
+qrcode = { version = "0.14.1", default-features = false, features = ["svg"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"

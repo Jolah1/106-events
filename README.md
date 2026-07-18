@@ -219,8 +219,8 @@ is one more variant and one more `send` arm — nothing above it changes.
 Each event carries a sheet of its suppliers — the caterer, the venue, the DJ —
 with what they cost and what they've been paid. It's an internal tracker: no
 vendor logins, no marketplace, no payment processing. The money here goes *out*
-to suppliers and is recorded as a ledger note; Phase 6's ticketing money comes
-*in* and is a different thing entirely.
+to suppliers and is recorded as a ledger note. Nothing comes *in*: attendance is
+free.
 
 **All money is kobo in a `BIGINT`.** No floats go near a total — 0.1 + 0.2
 isn't 0.3, and a budget off by a kobo a line is an argument with a caterer.
@@ -244,6 +244,111 @@ Categories are free text with suggested chips rather than an enum: the next
 event always needs one nobody listed ("aso-ebi coordinator", "small chops"), and
 a migration is a silly price for that. Vendor phone numbers get the same E.164
 normalization as guests.
+
+## Check-in
+
+Attendance is free. Nobody buys anything, so the guest list is the only thing
+that grants entry, and there is no payment to reconcile a scan against.
+
+**Every head gets its own code, including plus-ones.** A party of four arrives
+in three cars; if the codes belonged to the guest rather than to each person,
+the first one through would carry everyone's admission in their pocket. Head 0
+is the guest themselves, 1..n their plus-ones, and the head index is what makes
+a nameless plus-one's label ("Aunt Ngozi +1") reproducible.
+
+**Codes read aloud.** Eight characters from a 23-character alphabet with every
+confusable pair removed: no O/0, no I/1/L, no S/5, no B/8, no U/V. That's what
+makes typing a viable fallback when a screenshot won't scan or a phone is dead,
+and it's why the door never depends on a working camera.
+
+**Codes are issued once and never rotated.** A guest who already has their QR
+keeps it: raising a plus-one count adds codes, and lowering one does *not*
+revoke them. A pass that stops working at the door is worse than an unused row,
+so the allowance check at check-in enforces the smaller number instead.
+
+**The scan is idempotent in the database, not in the app.** `UNIQUE
+(attendee_id, sub_event_id)` means a double-tap, a retried offline sync and two
+doors scanning the same badge all converge on one check-in. Nothing inflates
+the headcount.
+
+**Every outcome is an HTTP 200.** `admitted`, `already_in`, `not_invited`,
+`unknown_code`, `over_allowance` — a scanner replaying a queue over flaky data
+must never be told to retry, so meaning travels in the body, not the status.
+
+**Over-allowance is a question, not a refusal.** Someone who turns up beyond
+what they confirmed for — or who declined and came anyway — is shown to staff
+with a decision to make. Admitting them records `over_allowance`, so the
+organizer sees afterwards how many people nobody had counted.
+
+**The door works with no signal.** `GET /api/sub-events/{id}/door` returns a
+manifest of every code, label and allowance; the scanner caches it in
+`localStorage` before doors open and judges scans locally when offline, in the
+same vocabulary the server uses. Scans queue locally with the time they
+happened and drain when the signal returns, so the count reflects when people
+walked in, not when the venue's Wi-Fi came back.
+
+**QR squares are drawn server-side** at `/q/{code}` as SVG. It's a public
+endpoint on purpose: the code *is* the credential, so the image leaks nothing
+that its holder doesn't already have, and it renders any plausible code without
+touching the database so it can't be used to enumerate a guest list. One URL
+serves the RSVP page, the organizer's printable sheet, and — later — a WhatsApp
+message.
+
+**Scanning uses the browser's own `BarcodeDetector`** — no dependency. Chrome on
+Android has it, which is what door staff here are holding; everywhere else the
+screen falls back to typing the code, which the alphabet was designed for.
+
+Guests see their passes on the RSVP link they already have, the moment they
+confirm. Only as many as they confirmed for: handing someone four squares when
+they said they're coming alone invites exactly the confusion the door then has
+to sort out.
+
+## Deploying
+
+The whole app is one binary plus the dashboard's static files, so the deploy
+artifact is a single container. It needs a persistent process, not a serverless
+function: the reminder worker is an in-process 60-second tick, and sqlx holds a
+connection pool. Anything that runs a Dockerfile and gives you a Postgres will
+do — Railway, Fly.io, Render.
+
+```sh
+docker build -t 106-events .
+```
+
+The build compiles queries against the committed `server/.sqlx` cache
+(`SQLX_OFFLINE=true`), so no database is needed to build the image. Migrations
+run automatically on startup, under an advisory lock, so rolling deploys are
+safe.
+
+### Environment
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | Most hosts inject this when you attach a Postgres. |
+| `ADMIN_EMAILS` | yes | Comma-separated. Seeded as admins on boot — without one, nobody can sign in and there is no way to invite anyone. |
+| `PUBLIC_BASE_URL` | yes | The deployed origin. RSVP links, QR image URLs and OG tags are absolute and built from it. |
+| `APP_BASE_URL` | yes | Same origin here: one service serves both. |
+| `SMTP_URL` | for sign-in | Without it, magic links are logged and never delivered, so nobody can sign in. Public pages work regardless. |
+| `EMAIL_FROM` | no | Defaults to a no-reply address. |
+| `COOKIE_SECURE` | yes in prod | Set in the Dockerfile already. |
+| `WEBHOOK_SECRET` | yes in prod | Required on the inbound WhatsApp/SMS webhook. |
+| `ALLOW_DEV_LOGIN` | never in prod | Returns the sign-in link in the response. Development only. |
+
+### Railway
+
+New Project → Deploy from GitHub repo → pick this repository. Railway detects
+the Dockerfile. Then add a Postgres to the project, which sets `DATABASE_URL`,
+and set the rest of the variables above. `PUBLIC_BASE_URL` and `APP_BASE_URL`
+both take the domain Railway generates.
+
+### Fly.io
+
+`fly.toml` is checked in. `fly launch --no-deploy` to claim the app name, attach
+a Postgres, `fly secrets set` the variables above, then `fly deploy`.
+
+Note that Fly's *managed* Postgres starts at $38/month; an unmanaged
+`fly postgres create` on a small machine costs a fraction of that and is plenty
+for one venue's worth of guests.
 
 ## Development setup
 
@@ -354,6 +459,8 @@ See `server/.env.example` for the full list: `DATABASE_URL`, `ADMIN_EMAILS`,
 - [x] Phase 4 — RSVP capture (link, WhatsApp replies, SMS fallback)
 - [x] Phase 5 — automated reminders to non-responders
 - [x] Per-event vendor sheet (cost/paid tracker, beyond the eight phases)
-- [ ] Phase 6 — ticketing via Paystack/Flutterwave (Naira, kobo integers)
-- [ ] Phase 7 — offline-tolerant QR check-in
-- [ ] Phase 8 — organizer dashboard rollups
+- [x] Free QR check-in, offline-tolerant (replaces the old ticketing phase)
+- [ ] Organizer dashboard rollups
+
+Ticketing was removed from the plan: every event is free to attend, and the
+guest list is the only thing that grants entry.

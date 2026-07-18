@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT head_index, code FROM attendees\n         WHERE guest_id = $1 AND NOT is_extra\n         ORDER BY head_index\n         LIMIT $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "head_index",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "attendees",
+            "name": "head_index"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "code",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attendees",
+            "name": "code"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "86de5935af3bc7df3fe73d5a690cd079de352696ca12c2f5238a84a4d50780ea"
+}

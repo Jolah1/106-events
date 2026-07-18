@@ -1,0 +1,13 @@
+# Build outputs and local state — the image builds these itself.
+**/target/
+**/node_modules/
+**/dist/
+.git/
+.claude/
+
+# Never let local secrets reach a layer.
+**/.env
+**/*.log
+
+# The compile-time query cache is required inside the build (SQLX_OFFLINE), so
+# server/.sqlx is deliberately NOT ignored.

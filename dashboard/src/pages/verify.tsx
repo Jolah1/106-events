@@ -28,7 +28,7 @@ export function VerifyPage() {
       .post("/api/auth/verify", { token })
       .then(() => {
         client.clear()
-        navigate("/", { replace: true })
+        navigate("/events", { replace: true })
       })
       .catch((err) => {
         if (err instanceof ApiError && err.status === 403) {

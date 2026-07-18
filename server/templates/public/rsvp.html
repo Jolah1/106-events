@@ -57,6 +57,38 @@ form { margin: 28px 0 0; }
 }
 .submit:hover { background: var(--gold-bright); }
 .foot-note { margin: 16px 0 0; text-align: center; color: var(--muted); font-size: 13px; }
+
+.passes { margin: 40px 0 0; }
+.passes-head { text-align: center; }
+.passes-head h2 { font-size: 22px; margin: 0; }
+.passes-head p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+.pass {
+  background: var(--raised);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 20px;
+  margin: 16px 0 0;
+  text-align: center;
+}
+.pass-who { font-size: 16px; margin: 0 0 14px; }
+/* The square sits on its own white field: scanners need the contrast, and a
+   dark page behind a QR code is the most common reason one won't read. */
+.pass-qr {
+  display: inline-block;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  line-height: 0;
+}
+.pass-qr img { width: 200px; height: 200px; display: block; }
+.pass-code {
+  margin: 14px 0 0;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+}
+.pass-hint { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
 {% endblock %}
 
 {% block body %}
@@ -99,5 +131,31 @@ form { margin: 28px 0 0; }
     <button type="submit" class="submit">Send my response</button>
     <p class="foot-note">Tick the ones you'll attend, then send. Nothing ticked means you can't make it.</p>
   </form>
+
+  {% if !passes.is_empty() %}
+  <section class="passes">
+    <div class="passes-head">
+      <h2 class="display">{% if passes.len() == 1 %}Your pass{% else %}Your passes{% endif %}</h2>
+      <p>
+        {% if passes.len() == 1 %}
+          Show this at the door. Nothing to pay — it's how we know you're expected.
+        {% else %}
+          One for each person coming with you. Everyone shows their own at the door.
+        {% endif %}
+      </p>
+    </div>
+
+    {% for pass in passes %}
+    <div class="pass">
+      <p class="pass-who">{{ pass.label }}</p>
+      <span class="pass-qr">
+        <img src="{{ pass.qr_url }}" width="200" height="200" alt="Entry code {{ pass.spoken }}">
+      </span>
+      <p class="pass-code">{{ pass.spoken }}</p>
+      <p class="pass-hint">If the scan won't work, read this code out instead.</p>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
 </main>
 {% endblock %}

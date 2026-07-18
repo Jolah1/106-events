@@ -1,5 +1,15 @@
 import { useState, type FormEvent } from "react"
-import { CalendarDays, MapPin, Pencil, Plus, Store, Trash2, Users } from "lucide-react"
+import {
+  CalendarDays,
+  MapPin,
+  Pencil,
+  Plus,
+  QrCode,
+  ScanLine,
+  Store,
+  Trash2,
+  Users,
+} from "lucide-react"
 import { Link, useNavigate, useParams } from "react-router"
 import { toast } from "sonner"
 
@@ -57,7 +67,7 @@ export function EventDetailPage() {
         </p>
         {notFound ? (
           <Button asChild variant="outline">
-            <Link to="/">Back to events</Link>
+            <Link to="/events">Back to events</Link>
           </Button>
         ) : (
           <Button variant="outline" onClick={() => detail.refetch()}>
@@ -84,7 +94,7 @@ function EventDetailView({ event }: { event: EventDetail }) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link to="/events" className="text-sm text-muted-foreground hover:text-foreground">
         ← Events
       </Link>
 
@@ -114,6 +124,18 @@ function EventDetailView({ event }: { event: EventDetail }) {
             <Link to={`/events/${event.id}/vendors`}>
               <Store data-slot="icon" />
               Vendors
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/events/${event.id}/passes`}>
+              <QrCode data-slot="icon" />
+              Passes
+            </Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link to={`/events/${event.id}/door`}>
+              <ScanLine data-slot="icon" />
+              Door
             </Link>
           </Button>
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
@@ -172,7 +194,7 @@ function EventDetailView({ event }: { event: EventDetail }) {
           deleteEvent.mutate(event.id, {
             onSuccess: () => {
               toast.success("Event deleted")
-              navigate("/", { replace: true })
+              navigate("/events", { replace: true })
             },
             onError: (err) =>
               toast.error(err instanceof ApiError ? err.message : "Couldn't reach the server."),

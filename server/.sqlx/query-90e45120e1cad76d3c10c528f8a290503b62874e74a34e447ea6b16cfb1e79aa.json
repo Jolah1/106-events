@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT checked_in_at FROM check_ins WHERE attendee_id = $1 AND sub_event_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "checked_in_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "check_ins",
+            "name": "checked_in_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "90e45120e1cad76d3c10c528f8a290503b62874e74a34e447ea6b16cfb1e79aa"
+}

@@ -1,0 +1,40 @@
+# Fly.io deploy. See the "Deploying" section of README.md for first-run setup.
+#
+# Region is London. Johannesburg is closer on a map, but Fly's managed Postgres
+# isn't offered there, and the app has to sit beside its database — and most
+# West African traffic reaches Europe faster than it reaches Johannesburg.
+
+app = "one-oh-six-events"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # Both origins are this app: it serves the dashboard and the public pages.
+  APP_BASE_URL = "https://one-oh-six-events.fly.dev"
+  PUBLIC_BASE_URL = "https://one-oh-six-events.fly.dev"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  # One machine stays up. The reminder worker is an in-process 60s tick, so a
+  # fully scaled-to-zero app would simply never send a reminder.
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    path = "/healthz"
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

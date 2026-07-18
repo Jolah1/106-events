@@ -37,6 +37,7 @@ pub fn test_config() -> Config {
         admin_emails: Vec::new(),
         webhook_secret: None,
         dashboard_dist: None,
+        allow_dev_login: true,
     }
 }
 

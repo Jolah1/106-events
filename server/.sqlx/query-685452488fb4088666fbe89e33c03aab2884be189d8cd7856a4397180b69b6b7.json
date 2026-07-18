@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM guest_invites WHERE guest_id = $1 AND sub_event_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "685452488fb4088666fbe89e33c03aab2884be189d8cd7856a4397180b69b6b7"
+}

@@ -97,9 +97,11 @@ async fn request_link(
             .await
             .map_err(AppError::Internal)?;
 
-        // In development (no SMTP) the link is returned so the flow is usable
-        // end-to-end without email infrastructure.
-        dev_link = state.mailer.is_dev().then_some(link);
+        // Only when there is no mailer *and* someone explicitly asked for this.
+        // Returning a magic link to whoever requested it is account takeover;
+        // it exists so the flow is usable without email infrastructure, and it
+        // must never switch itself on because a deploy forgot to set SMTP_URL.
+        dev_link = (state.mailer.is_dev() && state.config.allow_dev_login).then_some(link);
     }
 
     Ok(Json(json!({ "sent": true, "devLink": dev_link })))

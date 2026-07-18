@@ -1,4 +1,6 @@
+pub mod access_requests;
 pub mod auth;
+pub mod check_in;
 pub mod config;
 pub mod events;
 pub mod guests;
@@ -14,7 +16,9 @@ use crate::state::AppState;
 
 pub fn router() -> Router<AppState> {
     Router::new()
+        .merge(access_requests::router())
         .merge(auth::router())
+        .merge(check_in::router())
         .merge(config::router())
         .merge(events::router())
         .merge(guests::router())

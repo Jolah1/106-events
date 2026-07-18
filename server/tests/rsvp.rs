@@ -319,3 +319,94 @@ async fn the_webhook_requires_its_secret_when_configured(pool: PgPool) {
     .await;
     assert_eq!(status, StatusCode::UNAUTHORIZED);
 }
+
+// --- passes -------------------------------------------------------------------
+
+#[sqlx::test]
+async fn confirming_hands_the_guest_their_passes(pool: PgPool) {
+    let (app, guest_id, token, [_, reception]) = seed(&pool).await;
+
+    let (_, before) = get_rsvp(&app, token).await;
+    assert!(
+        !before.contains("Your pass"),
+        "nothing to show before they've answered"
+    );
+
+    let form = format!("attending={reception}&party_{reception}=2");
+    assert_eq!(post_rsvp(&app, token, &form).await, StatusCode::SEE_OTHER);
+
+    let (status, body) = get_rsvp(&app, token).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(body.contains("Your passes"), "two heads, so plural");
+    assert!(
+        body.contains("Aunt Ngozi +1"),
+        "the plus-one gets their own, labelled by index"
+    );
+    assert!(
+        !body.contains("Aunt Ngozi +2"),
+        "they said two are coming, so two squares — not four"
+    );
+
+    // Each pass points at the image endpoint with that head's real code.
+    let issued: Vec<String> = sqlx::query_scalar!(
+        "SELECT code FROM attendees WHERE guest_id = $1 ORDER BY head_index",
+        guest_id
+    )
+    .fetch_all(&pool)
+    .await
+    .unwrap();
+    assert_eq!(issued.len(), 4, "codes exist for every head they may bring");
+    for code in &issued[..2] {
+        assert!(body.contains(&format!("/q/{code}")), "the square for {code}");
+        // The readable fallback, spaced the way it gets read aloud.
+        assert!(
+            body.contains(&format!("{} {}", &code[..4], &code[4..])),
+            "the spoken form of {code}"
+        );
+    }
+}
+
+#[sqlx::test]
+async fn changing_to_a_decline_takes_the_passes_back(pool: PgPool) {
+    let (app, _, token, [_, reception]) = seed(&pool).await;
+
+    let form = format!("attending={reception}&party_{reception}=1");
+    post_rsvp(&app, token, &form).await;
+    let (_, body) = get_rsvp(&app, token).await;
+    assert!(body.contains("Your pass"));
+
+    post_rsvp(&app, token, "").await;
+    let (_, body) = get_rsvp(&app, token).await;
+    assert!(
+        !body.contains("Your pass"),
+        "someone who isn't coming shouldn't be holding a pass"
+    );
+}
+
+#[sqlx::test]
+async fn the_qr_endpoint_draws_a_code_without_confirming_who_holds_it(pool: PgPool) {
+    let (app, _, token, [_, reception]) = seed(&pool).await;
+    post_rsvp(&app, token, &format!("attending={reception}&party_{reception}=1")).await;
+
+    let code: String =
+        sqlx::query_scalar!("SELECT code FROM attendees ORDER BY head_index LIMIT 1")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+
+    let (status, body, headers) = common::get_html(&app, &format!("/q/{code}")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(headers[axum::http::header::CONTENT_TYPE], "image/svg+xml");
+    assert!(body.contains("<svg"), "an SVG square");
+
+    // A code that was never issued still renders, so the endpoint can't be used
+    // to find out who is on the guest list.
+    let (status, _, _) = common::get_html(&app, "/q/ACHD4F7K").await;
+    assert_eq!(status, StatusCode::OK);
+
+    // Anything that isn't shaped like one of our codes is simply not an image.
+    for junk in ["nonsense", "ACHD4F7", "WIFI"] {
+        let (status, _, _) = common::get_html(&app, &format!("/q/{junk}")).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{junk}");
+    }
+}

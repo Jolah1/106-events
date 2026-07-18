@@ -230,3 +230,31 @@ async fn request_link_validates_and_rate_limits(pool: PgPool) {
     .await;
     assert_eq!(status, StatusCode::TOO_MANY_REQUESTS);
 }
+
+#[sqlx::test]
+async fn a_deploy_without_smtp_does_not_hand_out_sign_in_links(pool: PgPool) {
+    // The dangerous shape: no mailer configured, and nobody turned the
+    // development escape hatch on. Asking for a link must not return one, or a
+    // forgotten SMTP_URL becomes account takeover for anyone who knows an
+    // admin's address.
+    let mut config = common::test_config();
+    config.allow_dev_login = false;
+    let app = common::app_with_config(pool.clone(), config);
+    seed_user(&pool, "admin@example.com").await;
+
+    let (status, body, _) = send(
+        &app,
+        Method::POST,
+        "/api/auth/request-link",
+        Some(json!({ "email": "admin@example.com" })),
+        None,
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK, "it still says it sent one");
+    assert_eq!(body["sent"], true);
+    assert!(
+        body["devLink"].is_null(),
+        "the link must reach them by email or not at all: {body}"
+    );
+}

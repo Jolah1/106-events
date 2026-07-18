@@ -1,0 +1,62 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT name, phone, about, handled_at FROM access_requests",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "access_requests",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "phone",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "access_requests",
+            "name": "phone"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "about",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "access_requests",
+            "name": "about"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "handled_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "access_requests",
+            "name": "handled_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "6097409c8d058bfc6f4e4e21c9ca2deb0ac8002198a08c328080866c0161e328"
+}
