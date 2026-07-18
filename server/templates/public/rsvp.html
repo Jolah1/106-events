@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block styles %}
+.head { padding: 36px 0 8px; text-align: center; }
+.head .wordmark { font-size: 15px; letter-spacing: 0.04em; color: var(--muted); }
+.head h1 { font-size: clamp(26px, 7vw, 40px); margin: 18px 0 0; }
+.datestamp {
+  margin: 12px 0 0;
+  color: var(--gold);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.hi { margin: 22px 0 0; color: var(--muted); text-align: center; }
+.saved {
+  margin: 22px 0 0;
+  padding: 12px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--raised);
+  color: var(--gold);
+  text-align: center;
+  font-size: 15px;
+}
+form { margin: 28px 0 0; }
+.part {
+  background: var(--raised);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin: 0 0 12px;
+}
+.part-head { display: flex; align-items: flex-start; gap: 12px; }
+.part-head input[type=checkbox] {
+  width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--gold); flex: none;
+}
+.part-title { font-size: 19px; margin: 0; }
+.part-when { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.part-venue { color: var(--muted); font-size: 14px; }
+.party {
+  margin: 14px 0 0 34px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px; color: var(--muted);
+}
+.party select {
+  background: var(--ink); color: var(--text);
+  border: 1px solid var(--hairline); border-radius: 8px;
+  padding: 6px 10px; font-size: 15px;
+}
+.submit {
+  display: block; width: 100%;
+  margin: 24px 0 0; padding: 15px;
+  background: var(--gold); color: #1a1408;
+  border: none; border-radius: 12px;
+  font-size: 16px; font-weight: 600;
+  cursor: pointer;
+}
+.submit:hover { background: var(--gold-bright); }
+.foot-note { margin: 16px 0 0; text-align: center; color: var(--muted); font-size: 13px; }
+{% endblock %}
+
+{% block body %}
+<div class="head">
+  <span class="wordmark"><b>106</b> Events</span>
+  <h1 class="display">{{ event_title }}</h1>
+  {% if !date_summary.is_empty() %}<p class="datestamp">{{ date_summary }}</p>{% endif %}
+  <p class="hi">Hi {{ guest_name }} — will you be joining us?</p>
+</div>
+
+<main class="wrap">
+  {% if saved %}<p class="saved">Thank you — your response is saved. You can change it here anytime.</p>{% endif %}
+
+  <form method="post" action="{{ meta.home_url }}/r/{{ token }}">
+    {% for part in parts %}
+    <div class="part">
+      <label class="part-head">
+        <input type="checkbox" name="attending" value="{{ part.id }}"{% if part.attending %} checked{% endif %}>
+        <span>
+          {% if single %}<span class="part-title display">Will you be there?</span>
+          {% else %}<span class="part-title display">{{ part.name }}</span>{% endif %}
+          <span class="part-when">{{ part.day }} · {{ part.time }}</span>
+          {% if !part.venue.is_empty() %}<span class="part-venue">{{ part.venue }}</span>{% endif %}
+        </span>
+      </label>
+
+      {% if max_party > 1 %}
+      <label class="party">
+        How many coming?
+        <select name="party_{{ part.id }}">
+          {% for n in 1..(max_party + 1) %}
+          <option value="{{ n }}"{% if n == part.party_size %} selected{% endif %}>{{ n }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="submit">Send my response</button>
+    <p class="foot-note">Tick the ones you'll attend, then send. Nothing ticked means you can't make it.</p>
+  </form>
+</main>
+{% endblock %}

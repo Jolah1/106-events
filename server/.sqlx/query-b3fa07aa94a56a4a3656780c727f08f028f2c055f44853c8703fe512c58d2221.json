@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT g.id, g.event_id, g.name, g.phone, g.email, g.plus_ones,\n               g.dietary, g.notes, g.created_at, g.updated_at,\n               COALESCE(\n                   array_agg(gi.sub_event_id ORDER BY se.position)\n                       FILTER (WHERE gi.sub_event_id IS NOT NULL),\n                   '{}'\n               ) AS \"sub_event_ids!: Vec<Uuid>\"\n        FROM guests g\n        LEFT JOIN guest_invites gi ON gi.guest_id = g.id\n        LEFT JOIN sub_events se ON se.id = gi.sub_event_id\n        WHERE g.event_id = $1 AND ($2::uuid IS NULL OR g.id = $2)\n        GROUP BY g.id\n        ORDER BY g.name, g.created_at\n        ",
+  "query": "\n        SELECT g.id, g.event_id, g.name, g.phone, g.email, g.plus_ones,\n               g.dietary, g.notes, g.rsvp_token, g.created_at, g.updated_at,\n               COALESCE(\n                   array_agg(gi.sub_event_id ORDER BY se.position)\n                       FILTER (WHERE gi.sub_event_id IS NOT NULL),\n                   '{}'\n               ) AS \"sub_event_ids!: Vec<Uuid>\",\n               count(gi.sub_event_id) AS \"invited!\",\n               count(*) FILTER (WHERE gi.rsvp_status = 'confirmed') AS \"confirmed!\",\n               count(*) FILTER (WHERE gi.rsvp_status = 'declined') AS \"declined!\",\n               COALESCE(max(gi.party_size), 0) AS \"attending_heads!\"\n        FROM guests g\n        LEFT JOIN guest_invites gi ON gi.guest_id = g.id\n        LEFT JOIN sub_events se ON se.id = gi.sub_event_id\n        WHERE g.event_id = $1 AND ($2::uuid IS NULL OR g.id = $2)\n        GROUP BY g.id\n        ORDER BY g.name, g.created_at\n        ",
   "describe": {
     "columns": [
       {
@@ -93,6 +93,17 @@
       },
       {
         "ordinal": 8,
+        "name": "rsvp_token",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "rsvp_token"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -103,7 +114,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "updated_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -114,9 +125,33 @@
         }
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "sub_event_ids!: Vec<Uuid>",
         "type_info": "UuidArray",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 12,
+        "name": "invited!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 13,
+        "name": "confirmed!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 14,
+        "name": "declined!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 15,
+        "name": "attending_heads!",
+        "type_info": "Int4",
         "origin": "Expression"
       }
     ],
@@ -137,8 +172,13 @@
       false,
       false,
       false,
+      false,
+      null,
+      null,
+      null,
+      null,
       null
     ]
   },
-  "hash": "ac29a7f333cab8766a00d7ad1487654e60df12ed349c1ac75a370c13ddf18807"
+  "hash": "b3fa07aa94a56a4a3656780c727f08f028f2c055f44853c8703fe512c58d2221"
 }

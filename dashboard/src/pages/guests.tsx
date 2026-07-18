@@ -6,6 +6,7 @@ import { toast } from "sonner"
 
 import { GuestDialog, type GuestDraft } from "@/components/guest-dialog"
 import { ImportGuestsDialog } from "@/components/import-guests-dialog"
+import { CopyRsvpLink, RsvpBadge, rsvpBreakdown } from "@/components/rsvp-status"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,9 +23,14 @@ import { ApiError } from "@/lib/api"
 import { useCreateGuest, useDeleteGuest, useEvent, useGuests, useUpdateGuest } from "@/lib/queries"
 import type { EventDetail, Guest, SubEvent } from "@/lib/types"
 
-/** Everyone who would walk through the door: each guest, plus their plus-ones. */
+/** Everyone who could walk through the door: each guest, plus their plus-ones. */
 function headcount(guests: Guest[]) {
   return guests.reduce((total, guest) => total + 1 + guest.plusOnes, 0)
+}
+
+/** Heads actually confirmed so far — what to cater for, versus the capacity. */
+function confirmedHeads(guests: Guest[]) {
+  return guests.reduce((total, guest) => total + guest.attendingHeads, 0)
 }
 
 function plural(n: number, one: string, many = `${one}s`) {
@@ -145,7 +151,9 @@ function GuestsView({ event, guests }: { event: EventDetail; guests: Guest[] }) 
         <EmptyState onImport={() => setImportOpen(true)} onAdd={() => setAddOpen(true)} />
       ) : (
         <>
-          <div className="mt-8 flex flex-col gap-3">
+          <RsvpSummary guests={guests} />
+
+          <div className="mt-6 flex flex-col gap-3">
             <div className="relative">
               <Search
                 data-slot="icon"
@@ -272,6 +280,45 @@ function GuestsView({ event, guests }: { event: EventDetail; guests: Guest[] }) 
   )
 }
 
+function RsvpSummary({ guests }: { guests: Guest[] }) {
+  const counts = rsvpBreakdown(guests)
+  const answered = counts.confirmed + counts.partial + counts.declined
+  const stats = [
+    { label: "Coming", value: counts.confirmed, className: "text-emerald-400" },
+    { label: "Some parts", value: counts.partial, className: "text-primary", when: counts.partial > 0 },
+    { label: "Can't come", value: counts.declined, className: "text-muted-foreground" },
+    { label: "Awaiting", value: counts.pending, className: "text-amber-400" },
+  ].filter((s) => s.when !== false)
+
+  return (
+    <div className="mt-8 rounded-xl border p-4">
+      <div className="flex flex-wrap gap-x-8 gap-y-3">
+        {stats.map((stat) => (
+          <div key={stat.label}>
+            <p className={`font-heading text-2xl font-semibold ${stat.className}`}>{stat.value}</p>
+            <p className="text-xs text-muted-foreground">{stat.label}</p>
+          </div>
+        ))}
+        <div className="ml-auto text-right">
+          <p className="font-heading text-2xl font-semibold">
+            {confirmedHeads(guests)}
+            <span className="text-base font-normal text-muted-foreground"> / {headcount(guests)}</span>
+          </p>
+          <p className="text-xs text-muted-foreground">Heads confirmed / capacity</p>
+        </div>
+      </div>
+      {answered > 0 && (
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full bg-emerald-500/70"
+            style={{ width: `${(counts.confirmed / guests.length) * 100}%` }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
 function FilterChip({
   active,
   onClick,
@@ -319,6 +366,7 @@ function GuestCard({
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-medium">{guest.name}</h3>
             {guest.plusOnes > 0 && <Badge variant="secondary">+{guest.plusOnes}</Badge>}
+            <RsvpBadge status={guest.rsvpStatus} />
           </div>
 
           <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -339,6 +387,7 @@ function GuestCard({
 
         {/* Always reachable on touch, where there is no hover to reveal them. */}
         <div className="flex shrink-0 gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+          <CopyRsvpLink guest={guest} />
           <Button variant="ghost" size="icon" onClick={onEdit} aria-label={`Edit ${guest.name}`}>
             <Pencil data-slot="icon" />
           </Button>

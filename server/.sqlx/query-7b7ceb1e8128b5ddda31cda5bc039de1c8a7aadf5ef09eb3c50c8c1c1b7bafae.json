@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT sub_event_id FROM guest_invites WHERE guest_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "sub_event_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "guest_invites",
+            "name": "sub_event_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "7b7ceb1e8128b5ddda31cda5bc039de1c8a7aadf5ef09eb3c50c8c1c1b7bafae"
+}

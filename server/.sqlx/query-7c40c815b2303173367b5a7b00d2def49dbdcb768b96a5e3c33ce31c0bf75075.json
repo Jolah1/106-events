@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT parsed_as FROM inbound_messages WHERE guest_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "parsed_as",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "inbound_messages",
+            "name": "parsed_as"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "7c40c815b2303173367b5a7b00d2def49dbdcb768b96a5e3c33ce31c0bf75075"
+}

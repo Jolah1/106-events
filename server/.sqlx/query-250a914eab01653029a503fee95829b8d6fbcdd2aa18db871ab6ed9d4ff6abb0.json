@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT rsvp_token FROM guests WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "rsvp_token",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "rsvp_token"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "250a914eab01653029a503fee95829b8d6fbcdd2aa18db871ab6ed9d4ff6abb0"
+}

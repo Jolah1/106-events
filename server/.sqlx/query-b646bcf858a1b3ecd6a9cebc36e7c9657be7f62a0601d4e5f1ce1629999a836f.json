@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT g.id, g.event_id, g.name, g.plus_ones\n        FROM guests g\n        JOIN sub_events se ON se.event_id = g.event_id\n        WHERE g.phone = $1\n        GROUP BY g.id\n        ORDER BY (min(se.starts_at) >= now()) DESC, min(se.starts_at) ASC\n        LIMIT 1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "event_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "event_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "plus_ones",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "plus_ones"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "b646bcf858a1b3ecd6a9cebc36e7c9657be7f62a0601d4e5f1ce1629999a836f"
+}

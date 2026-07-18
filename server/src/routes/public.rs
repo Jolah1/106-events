@@ -6,27 +6,30 @@
 
 use askama::Template;
 use axum::{
-    Router,
-    extract::{Path, State},
+    Form, Router,
+    extract::{Path, Query, State},
     http::{
         StatusCode,
         header::{CACHE_CONTROL, CONTENT_TYPE},
     },
-    response::{Html, IntoResponse, Response},
+    response::{Html, IntoResponse, Redirect, Response},
     routing::get,
 };
 use chrono::{DateTime, Utc};
 use chrono_tz::Tz;
+use uuid::Uuid;
 
 use crate::{
     domain::datetime::{date_summary, day_label, time_range},
     error::AppError,
+    routes::api::rsvp_store::{self, PartResponse},
     state::AppState,
 };
 
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/e/{slug}", get(event_page))
+        .route("/r/{token}", get(rsvp_page).post(rsvp_submit))
         .route("/static/favicon-v1.svg", get(favicon))
         .route("/static/og-default-v1.png", get(og_default))
         .route("/static/fonts/fraunces-latin-v1.woff2", get(font_latin))
@@ -196,6 +199,184 @@ async fn event_page(
     };
 
     Ok(render(page, StatusCode::OK, "public, max-age=60"))
+}
+
+// ---------------------------------------------------------------------------
+// Public RSVP link
+//
+// Reached from a WhatsApp/SMS message: /r/{token}, where the token is the
+// guest's unguessable rsvp_token. One request, no login, no JavaScript — the
+// form posts back and we redirect (POST/redirect/GET) so a refresh can't
+// double-submit.
+// ---------------------------------------------------------------------------
+
+struct RsvpPartView {
+    id: Uuid,
+    name: String,
+    day: String,
+    time: String,
+    venue: String,
+    /// Whether the guest has this part marked as attending (a confirmed RSVP);
+    /// drives the checkbox's initial state.
+    attending: bool,
+    party_size: i32,
+}
+
+#[derive(Template)]
+#[template(path = "public/rsvp.html")]
+struct RsvpPage {
+    meta: Meta,
+    guest_name: String,
+    event_title: String,
+    date_summary: String,
+    token: Uuid,
+    parts: Vec<RsvpPartView>,
+    /// The most anyone may bring: 1 + the guest's plus-ones. Bounds the party
+    /// selector.
+    max_party: i32,
+    /// True just after a submission, to show a "saved" note.
+    saved: bool,
+    /// A single default part hides the schedule layer, matching the event page.
+    single: bool,
+}
+
+async fn load_rsvp_page(
+    state: &AppState,
+    token: Uuid,
+    saved: bool,
+) -> Result<Option<RsvpPage>, AppError> {
+    let Some(guest) = rsvp_store::guest_by_token(&state.pool, token).await? else {
+        return Ok(None);
+    };
+
+    let event = sqlx::query!(
+        "SELECT title, timezone FROM events WHERE id = $1",
+        guest.event_id
+    )
+    .fetch_one(&state.pool)
+    .await?;
+    let tz: Tz = event.timezone.parse().unwrap_or(chrono_tz::Africa::Lagos);
+
+    let rows = sqlx::query!(
+        "SELECT se.id, se.name, se.starts_at, se.ends_at, se.venue_name, se.is_default,
+                gi.rsvp_status, gi.party_size
+         FROM guest_invites gi
+         JOIN sub_events se ON se.id = gi.sub_event_id
+         WHERE gi.guest_id = $1
+         ORDER BY se.position, se.starts_at",
+        guest.id
+    )
+    .fetch_all(&state.pool)
+    .await?;
+
+    let starts: Vec<DateTime<Utc>> = rows.iter().map(|r| r.starts_at).collect();
+    let date_line = match (starts.iter().min(), starts.iter().max()) {
+        (Some(first), Some(last)) => date_summary(*first, *last, tz),
+        _ => String::new(),
+    };
+    let single = rows.len() == 1 && rows[0].is_default;
+    let max_party = 1 + guest.plus_ones;
+
+    let parts = rows
+        .into_iter()
+        .map(|r| RsvpPartView {
+            id: r.id,
+            name: r.name,
+            day: day_label(r.starts_at, tz),
+            time: time_range(r.starts_at, r.ends_at, tz),
+            venue: r.venue_name,
+            attending: r.rsvp_status == "confirmed",
+            // Default the selector to a full turnout so a first-time confirm
+            // doesn't start at a lonely 1.
+            party_size: if r.party_size > 0 { r.party_size } else { max_party },
+        })
+        .collect();
+
+    Ok(Some(RsvpPage {
+        meta: Meta {
+            page_title: format!("RSVP · {} · 106 Events", event.title),
+            og_title: format!("RSVP · {}", event.title),
+            og_description: "Let them know if you'll be there.".into(),
+            og_image: format!("{}/static/og-default-v1.png", state.config.public_base_url),
+            og_image_alt: "106 Events".into(),
+            og_image_dims: Some(Dims { width: 1200, height: 630 }),
+            canonical_url: format!("{}/r/{}", state.config.public_base_url, token),
+            home_url: state.config.public_base_url.clone(),
+        },
+        guest_name: guest.name,
+        event_title: event.title,
+        date_summary: date_line,
+        token,
+        parts,
+        max_party,
+        saved,
+        single,
+    }))
+}
+
+#[derive(serde::Deserialize)]
+struct RsvpQuery {
+    #[serde(default)]
+    saved: bool,
+}
+
+async fn rsvp_page(
+    State(state): State<AppState>,
+    Path(token): Path<Uuid>,
+    Query(query): Query<RsvpQuery>,
+) -> Result<Response, AppError> {
+    match load_rsvp_page(&state, token, query.saved).await? {
+        // The RSVP link must never be cached: it shows a guest's own answers.
+        Some(page) => Ok(render(page, StatusCode::OK, "no-store")),
+        None => Ok(not_found_page(&state)),
+    }
+}
+
+async fn rsvp_submit(
+    State(state): State<AppState>,
+    Path(token): Path<Uuid>,
+    Form(fields): Form<Vec<(String, String)>>,
+) -> Result<Response, AppError> {
+    let Some(guest) = rsvp_store::guest_by_token(&state.pool, token).await? else {
+        return Ok(not_found_page(&state));
+    };
+
+    // The checkboxes: every `attending=<uuid>` names a part the guest is
+    // coming to. Everything they're invited to but didn't tick is a decline.
+    let attending: std::collections::HashSet<Uuid> = fields
+        .iter()
+        .filter(|(k, _)| k == "attending")
+        .filter_map(|(_, v)| v.parse().ok())
+        .collect();
+
+    let invited: Vec<Uuid> = sqlx::query_scalar!(
+        "SELECT sub_event_id FROM guest_invites WHERE guest_id = $1",
+        guest.id
+    )
+    .fetch_all(&state.pool)
+    .await?;
+
+    let responses: Vec<PartResponse> = invited
+        .into_iter()
+        .map(|sub_event_id| {
+            let party_size = fields
+                .iter()
+                .find(|(k, _)| *k == format!("party_{sub_event_id}"))
+                .and_then(|(_, v)| v.parse().ok())
+                .unwrap_or(1);
+            PartResponse {
+                sub_event_id,
+                attending: attending.contains(&sub_event_id),
+                party_size,
+            }
+        })
+        .collect();
+
+    rsvp_store::record_link_response(&state.pool, &guest, &responses).await?;
+
+    // POST/redirect/GET: land back on the page (now showing "saved") so a
+    // refresh re-fetches rather than re-submits.
+    Ok(Redirect::to(&format!("{}/r/{}?saved=true", state.config.public_base_url, token)).into_response())
 }
 
 fn not_found_page(state: &AppState) -> Response {
