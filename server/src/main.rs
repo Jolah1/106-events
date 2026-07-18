@@ -36,6 +36,14 @@ async fn main() -> anyhow::Result<()> {
         );
     }
 
+    if config.allow_dev_login && config.cookie_secure {
+        tracing::warn!(
+            "ALLOW_DEV_LOGIN is on with secure cookies: sign-in links are being \
+             returned to whoever requests them. Configure SMTP_URL and unset \
+             ALLOW_DEV_LOGIN before this URL is shared."
+        );
+    }
+
     let mailer = Mailer::from_config(&config)?;
     let messenger = Arc::new(Messenger::from_config(&config));
     let bind_addr = config.bind_addr;

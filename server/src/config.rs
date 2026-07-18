@@ -27,6 +27,13 @@ pub struct Config {
     pub webhook_secret: Option<String>,
     /// If set, the built dashboard SPA is served from this directory.
     pub dashboard_dist: Option<PathBuf>,
+    /// Whether a sign-in request may return the magic link in its own response.
+    ///
+    /// Without this, a deploy that simply forgot to configure SMTP would hand a
+    /// working link to anyone who asked for one — full account takeover by
+    /// omission. So it is off unless someone deliberately turns it on, and it
+    /// only ever applies when there's no mailer to send through anyway.
+    pub allow_dev_login: bool,
 }
 
 fn var(name: &str) -> Option<String> {
@@ -63,6 +70,8 @@ impl Config {
                 .collect(),
             webhook_secret: var("WEBHOOK_SECRET"),
             dashboard_dist: var("DASHBOARD_DIST").map(PathBuf::from),
+            allow_dev_login: var("ALLOW_DEV_LOGIN")
+                .is_some_and(|v| v == "true" || v == "1"),
         })
     }
 }
