@@ -54,7 +54,7 @@ export function AppShell() {
   return (
     <div className="min-h-dvh">
       <header className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link to="/" aria-label="106 Events home">
+        <Link to="/events" aria-label="106 Events home">
           <Wordmark className="text-lg" />
         </Link>
         <div className="flex items-center gap-2">

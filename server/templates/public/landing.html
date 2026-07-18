@@ -1,0 +1,599 @@
+{% extends "base.html" %}
+
+{% block styles %}
+/* The landing page is the only wide page here, and the only one with a
+   navigation bar, so everything below is namespaced `lp-` to keep it from
+   leaning on (or fighting with) the shared classes the guest pages use. */
+
+:root {
+  /* The dark side of gold. Gold that is only ever one flat tone reads as
+     yellow; what makes it metal is having a shadow to catch. */
+  --gold-deep: #8a6a2f;
+  --gold-shadow: rgba(138, 106, 47, 0.25);
+}
+
+/* One gradient, reused wherever a surface should look struck rather than
+   filled. The stops are deliberately uneven — an even ramp looks like a
+   gradient, an uneven one looks like light moving across a curve. */
+.lp-metal {
+  background-image: linear-gradient(
+    118deg,
+    var(--gold-deep) 0%,
+    var(--gold) 22%,
+    var(--gold-bright) 40%,
+    var(--gold) 56%,
+    var(--gold-deep) 100%
+  );
+}
+
+.lp { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+/* --- navigation ---------------------------------------------------------- */
+
+.lp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 0;
+}
+.lp-nav .wordmark { font-size: 19px; letter-spacing: 0.01em; }
+.lp-signin {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 15px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  transition: color 0.2s, border-color 0.2s;
+}
+.lp-signin:hover { color: var(--text); border-color: rgba(240, 207, 138, 0.35); }
+
+/* --- hero ---------------------------------------------------------------- */
+
+.lp-hero { padding-block: 40px 24px; }
+.lp-hero-grid { display: grid; gap: 48px; }
+
+.lp-eyebrow {
+  margin: 0 0 20px;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.lp-h1 {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(42px, 9vw, 76px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+/* The second line drops to the muted tone: the sentence is one thought, but
+   the emphasis belongs on the first half. */
+.lp-h1 span { color: var(--gold); }
+.lp-lede {
+  margin: 24px 0 0;
+  max-width: 46ch;
+  font-size: clamp(16px, 2.2vw, 19px);
+  color: var(--muted);
+  line-height: 1.65;
+}
+.lp-cta-row {
+  margin: 34px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+}
+.lp-cta {
+  display: inline-block;
+  padding: 14px 26px;
+  border-radius: 999px;
+  color: #1a1408;
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+  box-shadow: 0 1px 0 rgba(255, 240, 205, 0.45) inset, 0 10px 30px -12px var(--gold-shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.lp-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255, 240, 205, 0.6) inset, 0 16px 34px -12px var(--gold-shadow);
+}
+.lp-cta-note { color: var(--muted); font-size: 14px; }
+
+/* --- the hero's event card ----------------------------------------------- */
+
+.lp-card {
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  background: var(--raised);
+  padding: 22px;
+  box-shadow: 0 40px 80px -50px rgba(0, 0, 0, 0.9);
+}
+.lp-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 4px 16px;
+}
+.lp-card-title { font-size: 20px; margin: 0; }
+.lp-card-meta {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.lp-part {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 4px;
+  border-top: 1px solid var(--hairline);
+}
+.lp-part-name { font-size: 16px; margin: 0; }
+.lp-part-when { margin: 3px 0 0; font-size: 13px; color: var(--muted); }
+.lp-part-count {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.lp-part-count b {
+  display: block;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1;
+}
+.lp-part-count span {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.lp-card-foot {
+  border-top: 1px solid var(--hairline);
+  padding: 14px 4px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Each part settles in on load, in the order a wedding actually runs. Two
+   properties, one keyframe — enough to feel alive, not enough to perform. */
+@media (prefers-reduced-motion: no-preference) {
+  .lp-part, .lp-card-foot { animation: lp-settle 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) backwards; }
+  .lp-part:nth-of-type(1) { animation-delay: 0.10s; }
+  .lp-part:nth-of-type(2) { animation-delay: 0.20s; }
+  .lp-part:nth-of-type(3) { animation-delay: 0.30s; }
+  .lp-card-foot { animation-delay: 0.40s; }
+}
+@keyframes lp-settle {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* --- the thread ---------------------------------------------------------- */
+/* One gold thread runs the length of the page, and every stage hangs off it.
+   It is the same line a guest travels: invited, replied, reminded, through the
+   door. The stage labels are the product's own words, not step numbers —
+   the order is real, but what matters is the state, not its index. */
+
+.lp-thread { position: relative; margin: 96px 0 0; padding-left: 28px; }
+.lp-thread::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--gold-deep) 6%,
+    var(--gold) 40%,
+    var(--gold-deep) 88%,
+    transparent
+  );
+}
+
+.lp-stage { position: relative; padding: 0 0 56px; }
+.lp-stage:last-child { padding-bottom: 0; }
+.lp-stage-body { min-width: 0; }
+/* The node where this stage meets the thread. */
+.lp-stage::before {
+  content: "";
+  position: absolute;
+  left: -28px;
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 4px var(--ink), 0 0 14px 1px rgba(217, 178, 98, 0.5);
+}
+.lp-stage-label {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.lp-stage-head h2 {
+  margin: 12px 0 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(24px, 4vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
+}
+.lp-stage p {
+  margin: 14px 0 0;
+  max-width: 52ch;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.lp-stage p b { color: var(--text); font-weight: 500; }
+
+/* --- the pass ------------------------------------------------------------ */
+
+.lp-pass {
+  margin: 22px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 22px 16px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--raised);
+}
+/* The square sits on white because scanners need the contrast — the same
+   reason the real pass does. */
+.lp-pass-qr { background: #fff; border-radius: 8px; padding: 7px; line-height: 0; }
+.lp-pass-qr img { display: block; width: 76px; height: 76px; }
+.lp-pass-who { margin: 0; font-size: 15px; }
+.lp-pass-code {
+  margin: 6px 0 0;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 17px;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+}
+
+/* --- request access ------------------------------------------------------ */
+
+.lp-ask { margin: 104px 0 0; }
+.lp-ask-grid { display: grid; gap: 32px; }
+.lp-ask-head { max-width: 44ch; }
+.lp-ask h2 {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(28px, 5vw, 40px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.lp-ask-head p { margin: 14px 0 0; color: var(--muted); line-height: 1.7; }
+
+.lp-form { margin: 0; max-width: 620px; }
+.lp-field { margin: 0 0 16px; }
+.lp-field label {
+  display: block;
+  margin: 0 0 7px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.lp-field input, .lp-field textarea {
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 11px;
+  border: 1px solid rgba(240, 207, 138, 0.22);
+  background: #131210;
+  color: var(--text);
+  font: inherit;
+}
+.lp-field textarea { min-height: 96px; resize: vertical; }
+.lp-field input:focus-visible, .lp-field textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.lp-field input::placeholder, .lp-field textarea::placeholder { color: #6f6a62; }
+.lp-pair { display: grid; gap: 0 16px; }
+/* Bots fill every input they can find; this one is only reachable to them. */
+.lp-trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.lp-submit {
+  margin: 8px 0 0;
+  padding: 14px 30px;
+  border: none;
+  border-radius: 999px;
+  color: #1a1408;
+  font: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 240, 205, 0.45) inset, 0 10px 30px -12px var(--gold-shadow);
+}
+.lp-note {
+  padding: 14px 18px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--raised);
+  margin: 0 0 24px;
+  max-width: 620px;
+}
+.lp-note.is-good { color: var(--gold); }
+.lp-note.is-bad { color: #f0a6a6; border-color: rgba(240, 166, 166, 0.3); }
+
+/* --- footer -------------------------------------------------------------- */
+
+.lp-foot {
+  margin: 104px 0 0;
+  border-top: 1px solid var(--hairline);
+  padding: 26px 0 44px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 13px;
+}
+.lp-foot a { color: var(--muted); text-decoration: none; }
+.lp-foot a:hover { color: var(--text); }
+
+/* --- wider than a phone --------------------------------------------------- */
+
+@media (min-width: 720px) {
+  .lp-pair { grid-template-columns: 1fr 1fr; }
+  .lp-thread { padding-left: 34px; }
+  .lp-stage::before { left: -34px; }
+}
+@media (min-width: 940px) {
+  .lp-hero { padding-block: 64px 40px; }
+  .lp-hero-grid { grid-template-columns: 1fr 0.85fr; align-items: center; gap: 64px; }
+  .lp-thread { margin-top: 104px; }
+  .lp-ask-grid {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+    gap: 0 56px;
+    align-items: start;
+  }
+  /* Heading on the thread, prose beside it. The gap between the two columns
+     is where the eye rests, and it keeps line length honest at any width. */
+  .lp-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+    gap: 0 56px;
+    padding-bottom: 72px;
+  }
+  .lp-stage-head h2 { max-width: none; }
+  .lp-stage-head { min-width: 0; }
+  .lp-stage-body { padding-top: 6px; }
+  .lp-stage-body p:first-child { margin-top: 0; }
+}
+{% endblock %}
+
+{% block body %}
+<div class="lp">
+  <nav class="lp-nav">
+    <span class="wordmark"><b>106</b> Events</span>
+    <a class="lp-signin" href="/login">Sign in</a>
+  </nav>
+</div>
+
+<div class="seam"></div>
+
+<header class="lp lp-hero">
+  <div class="lp-hero-grid">
+    <div>
+      <p class="lp-eyebrow">For Nigerian weddings</p>
+      <h1 class="lp-h1">One guest list.<br><span>Three parties.</span></h1>
+      <p class="lp-lede">
+        Traditional engagement, church, reception — different people at each, and
+        a list that keeps up. Guests reply on WhatsApp. Everyone walks in free
+        with their own code.
+      </p>
+      <div class="lp-cta-row">
+        <a class="lp-cta lp-metal" href="#request">Request access</a>
+        <span class="lp-cta-note">Invite-only while we're small.</span>
+      </div>
+    </div>
+
+    <!-- Not a screenshot: the same markup and type the real product uses. -->
+    <div class="lp-card">
+      <div class="lp-card-head">
+        <h2 class="lp-card-title display">Ọláṣubọmi &amp; Ṣadé</h2>
+        <span class="lp-card-meta">Nov 2026</span>
+      </div>
+
+      <div class="lp-part">
+        <div>
+          <p class="lp-part-name">Traditional Engagement</p>
+          <p class="lp-part-when">Fri 20 Nov · Ikeja</p>
+        </div>
+        <p class="lp-part-count"><b>118</b><span>coming</span></p>
+      </div>
+      <div class="lp-part">
+        <div>
+          <p class="lp-part-name">Church Ceremony</p>
+          <p class="lp-part-when">Sat 21 Nov · Ikoyi</p>
+        </div>
+        <p class="lp-part-count"><b>240</b><span>coming</span></p>
+      </div>
+      <div class="lp-part">
+        <div>
+          <p class="lp-part-name">Reception</p>
+          <p class="lp-part-when">Sat 21 Nov · Victoria Island</p>
+        </div>
+        <p class="lp-part-count"><b>310</b><span>coming</span></p>
+      </div>
+
+      <p class="lp-card-foot">412 invited · 89 still to answer</p>
+    </div>
+  </div>
+</header>
+
+<main class="lp">
+  <div class="lp-thread">
+    <section class="lp-stage">
+      <div class="lp-stage-head">
+        <p class="lp-stage-label">Invited</p>
+        <h2>The list three aunties have been adding to since January</h2>
+      </div>
+      <div class="lp-stage-body">
+        <p>
+          Bring in the spreadsheet as it is. Names keep their marks — Ọláṣubọmi
+          stays Ọláṣubọmi, not Olasubomi. Say who's invited to which part and
+          how many they may bring, and <b>the same person counts once</b> even
+          when they're on the list for all three.
+        </p>
+      </div>
+    </section>
+
+    <section class="lp-stage">
+      <div class="lp-stage-head">
+        <p class="lp-stage-label">Replied</p>
+        <h2>They answer where they already are</h2>
+      </div>
+      <div class="lp-stage-body">
+        <p>
+          A guest opens one link and ticks the parts they'll attend. Or they
+          just reply <b>YES</b> to the WhatsApp message, and it lands the same
+          way. No app to install, no account to make, no password to forget.
+        </p>
+      </div>
+    </section>
+
+    <section class="lp-stage">
+      <div class="lp-stage-head">
+        <p class="lp-stage-label">Reminded</p>
+        <h2>The nudge you'd have forgotten to send</h2>
+      </div>
+      <div class="lp-stage-body">
+        <p>
+          Set the ladder once — two weeks out, three days out, the morning of —
+          and only the people who haven't answered get chased. <b>Never twice,
+          and never after 9pm</b> where the wedding is, not where the server is.
+        </p>
+      </div>
+    </section>
+
+    <section class="lp-stage">
+      <div class="lp-stage-head">
+        <p class="lp-stage-label">At the door</p>
+        <h2>Everyone gets in free. Everyone gets counted.</h2>
+      </div>
+      <div class="lp-stage-body">
+        <p>
+          Every person gets their own code, plus-ones included, so a party can
+          arrive in three cars. Staff scan it, or read the eight characters
+          aloud when a phone is dead. <b>If the venue's wifi dies the door keeps
+          working</b> and catches up when it comes back.
+        </p>
+        <div class="lp-pass">
+          <span class="lp-pass-qr">
+            <img src="{{ meta.home_url }}/q/MTXN9RGJ" width="76" height="76"
+                 alt="Example entry code, MTXN 9RGJ">
+          </span>
+          <span>
+            <p class="lp-pass-who">Aunt Ngozi +1</p>
+            <p class="lp-pass-code">MTXN 9RGJ</p>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-stage">
+      <div class="lp-stage-head">
+        <p class="lp-stage-label">Afterwards</p>
+        <h2>What the caterer cost, and what's still owed</h2>
+      </div>
+      <div class="lp-stage-body">
+        <p>
+          Every event carries a sheet of its suppliers — venue, catering, DJ,
+          aso-ebi — with the price agreed and the money paid so far. <b>In
+          naira, to the kobo</b>, and it never quietly disagrees with itself.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <section class="lp-ask" id="request">
+    <div class="lp-ask-grid">
+    <div class="lp-ask-head">
+      <h2>Ask for an account</h2>
+      <p>
+        We're letting planners in a few at a time so we can set each one up
+        properly. Tell us what you're planning and we'll write back.
+      </p>
+    </div>
+
+    <div>
+    {% if requested %}
+    <p class="lp-note is-good" role="status">
+      Got it — we'll be in touch by email. You can close this page.
+    </p>
+    {% endif %}
+    {% if let Some(message) = error %}
+    <p class="lp-note is-bad" role="alert">{{ message }}</p>
+    {% endif %}
+
+    <form class="lp-form" method="post" action="{{ meta.home_url }}/request-access">
+      <div class="lp-pair">
+        <div class="lp-field">
+          <label for="lp-name">Your name</label>
+          <input id="lp-name" name="name" value="{{ form.name }}" required
+                 autocomplete="name" maxlength="200">
+        </div>
+        <div class="lp-field">
+          <label for="lp-email">Email</label>
+          <input id="lp-email" name="email" type="email" value="{{ form.email }}"
+                 required autocomplete="email" maxlength="254">
+        </div>
+      </div>
+
+      <div class="lp-field">
+        <label for="lp-phone">Phone <span aria-hidden="true">·</span> optional</label>
+        <input id="lp-phone" name="phone" type="tel" value="{{ form.phone }}"
+               autocomplete="tel" placeholder="0806 688 2563">
+      </div>
+
+      <div class="lp-field">
+        <label for="lp-about">What are you planning?</label>
+        <textarea id="lp-about" name="about" maxlength="2000"
+                  placeholder="A wedding in November — engagement, church and reception, around 400 guests.">{{ form.about }}</textarea>
+      </div>
+
+      <div class="lp-trap" aria-hidden="true">
+        <label for="lp-website">Leave this empty</label>
+        <input id="lp-website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <button type="submit" class="lp-submit lp-metal">Send request</button>
+    </form>
+    </div>
+    </div>
+  </section>
+</main>
+
+<div class="lp">
+  <div class="lp-foot">
+    <span class="wordmark"><b>106</b> Events</span>
+    <span>Made in Lagos for weddings that run all weekend.</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

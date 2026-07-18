@@ -83,7 +83,7 @@ export function NewEventPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/events" className="text-sm text-muted-foreground hover:text-foreground">
           ← Events
         </Link>
         <h1 className="mt-2 font-heading text-2xl font-semibold">New event</h1>
@@ -182,7 +182,7 @@ export function NewEventPage() {
             {createEvent.isPending ? "Creating…" : "Create event"}
           </Button>
           <Button asChild type="button" variant="ghost">
-            <Link to="/">Cancel</Link>
+            <Link to="/events">Cancel</Link>
           </Button>
         </div>
       </form>

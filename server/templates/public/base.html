@@ -100,8 +100,10 @@ a { color: inherit; }
 </head>
 <body>
 {% block body %}{% endblock %}
+{% block footer %}
 <footer class="footer">
   <a href="{{ meta.home_url }}">Powered by <span class="wordmark"><b>106</b> Events</span></a>
 </footer>
+{% endblock %}
 </body>
 </html>

@@ -72,7 +72,7 @@ export function VendorsPage() {
           {notFound ? "This event doesn't exist." : "Couldn't load the vendor sheet."}
         </p>
         <Button asChild variant="outline">
-          <Link to="/">Back to events</Link>
+          <Link to="/events">Back to events</Link>
         </Button>
       </div>
     )

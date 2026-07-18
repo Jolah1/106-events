@@ -3,6 +3,7 @@ import { Plus, Shield, Trash2, UserRound } from "lucide-react"
 import { Link } from "react-router"
 import { toast } from "sonner"
 
+import { AccessQueue } from "@/components/access-queue"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -53,7 +54,7 @@ export function TeamPage() {
             : "Couldn't load the team."}
         </p>
         <Button asChild variant="outline">
-          <Link to="/">Back to events</Link>
+          <Link to="/events">Back to events</Link>
         </Button>
       </div>
     )
@@ -70,6 +71,9 @@ function TeamView({ members, meId }: { members: TeamMember[]; meId: string }) {
   const removeMember = useRemoveMember()
 
   const adminCount = members.filter((m) => m.role === "admin").length
+  // Reaching this view already means the team endpoint let us in, which only
+  // admins get. Reading it off the list keeps that implicit fact checkable.
+  const isAdmin = members.some((m) => m.id === meId && m.role === "admin")
 
   function changeRole(member: TeamMember, role: Role) {
     updateMember.mutate(
@@ -85,7 +89,7 @@ function TeamView({ members, meId }: { members: TeamMember[]; meId: string }) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link to="/events" className="text-sm text-muted-foreground hover:text-foreground">
         ← Events
       </Link>
 
@@ -101,6 +105,8 @@ function TeamView({ members, meId }: { members: TeamMember[]; meId: string }) {
           Invite
         </Button>
       </div>
+
+      <AccessQueue isAdmin={isAdmin} />
 
       <div className="mt-8 flex flex-col gap-3">
         {members.map((member) => {

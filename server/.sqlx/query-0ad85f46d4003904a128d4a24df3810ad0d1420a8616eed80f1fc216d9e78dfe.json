@@ -1,0 +1,79 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT a.code, a.head_index, a.guest_id, g.name,\n               CASE WHEN gi.rsvp_status = 'confirmed' THEN gi.party_size ELSE 0 END\n                   AS \"party_allowed!\",\n               (c.id IS NOT NULL) AS \"checked_in!\"\n        FROM attendees a\n        JOIN guests g ON g.id = a.guest_id\n        JOIN guest_invites gi ON gi.guest_id = a.guest_id AND gi.sub_event_id = $1\n        LEFT JOIN check_ins c ON c.attendee_id = a.id AND c.sub_event_id = $1\n        WHERE a.event_id = $2\n        ORDER BY g.name, a.head_index\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "code",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attendees",
+            "name": "code"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "head_index",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "attendees",
+            "name": "head_index"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "guest_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "attendees",
+            "name": "guest_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "party_allowed!",
+        "type_info": "Int4",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 5,
+        "name": "checked_in!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "0ad85f46d4003904a128d4a24df3810ad0d1420a8616eed80f1fc216d9e78dfe"
+}

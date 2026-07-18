@@ -13,23 +13,32 @@ use axum::{
         header::{CACHE_CONTROL, CONTENT_TYPE},
     },
     response::{Html, IntoResponse, Redirect, Response},
-    routing::get,
+    routing::{get, post},
 };
 use chrono::{DateTime, Utc};
 use chrono_tz::Tz;
 use uuid::Uuid;
 
 use crate::{
-    domain::datetime::{date_summary, day_label, time_range},
+    domain::{
+        code,
+        datetime::{date_summary, day_label, time_range},
+    },
     error::AppError,
-    routes::api::rsvp_store::{self, PartResponse},
+    routes::api::{
+        access_requests, check_in,
+        rsvp_store::{self, PartResponse},
+    },
     state::AppState,
 };
 
 pub fn router() -> Router<AppState> {
     Router::new()
+        .route("/", get(landing_page))
+        .route("/request-access", post(request_access))
         .route("/e/{slug}", get(event_page))
         .route("/r/{token}", get(rsvp_page).post(rsvp_submit))
+        .route("/q/{code}", get(qr_image))
         .route("/static/favicon-v1.svg", get(favicon))
         .route("/static/og-default-v1.png", get(og_default))
         .route("/static/fonts/fraunces-latin-v1.woff2", get(font_latin))
@@ -53,6 +62,116 @@ struct Meta {
 struct Dims {
     width: u32,
     height: u32,
+}
+
+// ---------------------------------------------------------------------------
+// Landing page
+
+#[derive(Template)]
+#[template(path = "public/landing.html")]
+struct LandingPage {
+    meta: Meta,
+    /// Set after a successful request, so the form can say so without needing
+    /// any state beyond the URL.
+    requested: bool,
+    /// Echoed back into the form when a submission is rejected, so nobody has
+    /// to retype what they already wrote.
+    form: RequestForm,
+    error: Option<String>,
+}
+
+#[derive(Default, serde::Deserialize)]
+pub struct RequestForm {
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    email: String,
+    #[serde(default)]
+    phone: String,
+    #[serde(default)]
+    about: String,
+    /// A field no human sees and no human fills. Bots fill every input they
+    /// find, so anything here means the submission wasn't typed by a person.
+    #[serde(default)]
+    website: String,
+}
+
+#[derive(serde::Deserialize)]
+struct LandingQuery {
+    #[serde(default)]
+    requested: bool,
+}
+
+fn landing_meta(state: &AppState) -> Meta {
+    let base = state.config.public_base_url.clone();
+    Meta {
+        page_title: "106 Events — one guest list, three parties".into(),
+        og_title: "106 Events".into(),
+        og_description: "Guest lists, RSVPs, reminders and a free door — built for \
+                         how Nigerian weddings actually run."
+            .into(),
+        og_image: format!("{base}/static/og-default-v1.png"),
+        og_image_alt: "106 Events".into(),
+        og_image_dims: Some(Dims { width: 1200, height: 630 }),
+        canonical_url: base.clone(),
+        home_url: base,
+    }
+}
+
+async fn landing_page(
+    State(state): State<AppState>,
+    Query(query): Query<LandingQuery>,
+) -> Response {
+    let page = LandingPage {
+        meta: landing_meta(&state),
+        requested: query.requested,
+        form: RequestForm::default(),
+        error: None,
+    };
+    // Public and identical for everyone, but short-lived: the copy changes as
+    // the product does, and nobody should be reading last month's page.
+    render(page, StatusCode::OK, "public, max-age=300")
+}
+
+/// Takes a request for an account from the landing page.
+///
+/// A plain form post with no JavaScript, like every other public page here: one
+/// request in, one redirect back. Failure re-renders the page with what they
+/// typed still in the fields rather than dumping them on an error screen.
+async fn request_access(
+    State(state): State<AppState>,
+    Form(form): Form<RequestForm>,
+) -> Response {
+    // A filled honeypot is a bot. Answer exactly as though it worked, so it
+    // learns nothing, and write nothing down.
+    if !form.website.is_empty() {
+        return Redirect::to(&format!("{}/?requested=true", state.config.public_base_url))
+            .into_response();
+    }
+
+    match access_requests::record(
+        &state.pool,
+        &form.name,
+        &form.email,
+        &form.phone,
+        &form.about,
+    )
+    .await
+    {
+        Ok(()) => Redirect::to(&format!("{}/?requested=true", state.config.public_base_url))
+            .into_response(),
+        Err(AppError::Validation(message)) => render(
+            LandingPage {
+                meta: landing_meta(&state),
+                requested: false,
+                form,
+                error: Some(message),
+            },
+            StatusCode::BAD_REQUEST,
+            "no-store",
+        ),
+        Err(other) => other.into_response(),
+    }
 }
 
 struct PartView {
@@ -238,6 +357,54 @@ struct RsvpPage {
     saved: bool,
     /// A single default part hides the schedule layer, matching the event page.
     single: bool,
+    /// One pass per person the guest confirmed for. Empty until they confirm.
+    passes: Vec<PassView>,
+}
+
+/// A pass is what gets shown at the door: a square to scan and, underneath it,
+/// the same code in characters for when the scanner won't cooperate.
+struct PassView {
+    label: String,
+    /// The code spaced into two groups, which is how it gets read aloud and
+    /// typed back in. `code::normalize` strips the space again at the door.
+    spoken: String,
+    qr_url: String,
+}
+
+/// The guest's own codes, lowest head first, capped at what they confirmed for.
+///
+/// Extras added at the door are excluded: those belong to whoever staff let in,
+/// and putting one on the inviting guest's phone would be a second pass for a
+/// person who already walked through.
+async fn load_passes(
+    state: &AppState,
+    guest_id: Uuid,
+    guest_name: &str,
+    heads: i32,
+) -> Result<Vec<PassView>, AppError> {
+    let rows = sqlx::query!(
+        "SELECT head_index, code FROM attendees
+         WHERE guest_id = $1 AND NOT is_extra
+         ORDER BY head_index
+         LIMIT $2",
+        guest_id,
+        heads as i64
+    )
+    .fetch_all(&state.pool)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|r| PassView {
+            label: if r.head_index == 0 {
+                guest_name.to_string()
+            } else {
+                format!("{guest_name} +{}", r.head_index)
+            },
+            spoken: format!("{} {}", &r.code[..4], &r.code[4..]),
+            qr_url: format!("{}/q/{}", state.config.public_base_url, r.code),
+        })
+        .collect())
 }
 
 async fn load_rsvp_page(
@@ -277,6 +444,21 @@ async fn load_rsvp_page(
     let single = rows.len() == 1 && rows[0].is_default;
     let max_party = 1 + guest.plus_ones;
 
+    // Show only as many passes as the largest party they actually confirmed
+    // for. Handing someone four squares when they said they're coming alone
+    // invites exactly the confusion the door then has to sort out.
+    let confirmed_heads = rows
+        .iter()
+        .filter(|r| r.rsvp_status == "confirmed")
+        .map(|r| r.party_size)
+        .max()
+        .unwrap_or(0);
+    let passes = if confirmed_heads > 0 {
+        load_passes(state, guest.id, &guest.name, confirmed_heads).await?
+    } else {
+        Vec::new()
+    };
+
     let parts = rows
         .into_iter()
         .map(|r| RsvpPartView {
@@ -311,6 +493,7 @@ async fn load_rsvp_page(
         max_party,
         saved,
         single,
+        passes,
     }))
 }
 
@@ -374,6 +557,16 @@ async fn rsvp_submit(
 
     rsvp_store::record_link_response(&state.pool, &guest, &responses).await?;
 
+    // Issue their passes now, so the page they're about to land on can show
+    // them. Idempotent, and cheap enough to run on every submission.
+    check_in::ensure_heads_for_guest(
+        &state.pool,
+        guest.id,
+        guest.event_id,
+        1 + guest.plus_ones,
+    )
+    .await?;
+
     // POST/redirect/GET: land back on the page (now showing "saved") so a
     // refresh re-fetches rather than re-submits.
     Ok(Redirect::to(&format!("{}/r/{}?saved=true", state.config.public_base_url, token)).into_response())
@@ -415,6 +608,32 @@ fn render(page: impl Template, status: StatusCode, cache_control: &str) -> Respo
 // ---------------------------------------------------------------------------
 
 const IMMUTABLE: &str = "public, max-age=31536000, immutable";
+
+/// A head's QR code, as an image.
+///
+/// Unauthenticated on purpose: the code *is* the credential, so anyone who can
+/// request this URL already holds everything it encodes. Being a plain image URL
+/// is what lets the same square appear on the RSVP page, in a WhatsApp message,
+/// and on a printed invitation without three implementations.
+///
+/// It renders whatever plausible code is asked for without checking the
+/// database, so it can't be used to enumerate who is on a guest list.
+async fn qr_image(Path(raw): Path<String>) -> Response {
+    let code = code::normalize(&raw);
+    if !code::is_plausible(&code) {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    (
+        [
+            (CONTENT_TYPE, "image/svg+xml"),
+            // Codes are issued once and never rotated, so the square for a
+            // given code is permanent.
+            (CACHE_CONTROL, IMMUTABLE),
+        ],
+        code::qr_svg(&code),
+    )
+        .into_response()
+}
 
 fn asset(bytes: &'static [u8], content_type: &'static str) -> Response {
     (

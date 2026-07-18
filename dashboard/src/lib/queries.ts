@@ -6,7 +6,11 @@ import {
 
 import { api, ApiError } from "@/lib/api"
 import type {
+  AccessRequest,
   AppConfig,
+  Attendee,
+  CheckInRecord,
+  DoorManifest,
   CreateEventInput,
   CreateGuestInput,
   Event as EventModel,
@@ -295,5 +299,59 @@ export function useDeleteVendor(eventId: string) {
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/api/vendors/${id}`),
     onSuccess: () => client.invalidateQueries({ queryKey: ["vendors", eventId] }),
+  })
+}
+
+export function useAttendees(eventId: string) {
+  return useQuery({
+    queryKey: ["attendees", eventId],
+    queryFn: () => api.get<Attendee[]>(`/api/events/${eventId}/attendees`),
+  })
+}
+
+export function useSyncAttendees(eventId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: () =>
+      api.post<{ created: number; total: number }>(`/api/events/${eventId}/attendees/sync`),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["attendees", eventId] }),
+  })
+}
+
+export function useCheckIns(subEventId: string) {
+  return useQuery({
+    queryKey: ["check-ins", subEventId],
+    queryFn: () => api.get<CheckInRecord[]>(`/api/sub-events/${subEventId}/check-ins`),
+    enabled: subEventId !== "",
+  })
+}
+
+/** The offline-capable snapshot. Fetched once when the door screen opens. */
+export function useDoorManifest(subEventId: string) {
+  return useQuery({
+    queryKey: ["door", subEventId],
+    queryFn: () => api.get<DoorManifest>(`/api/sub-events/${subEventId}/door`),
+    enabled: subEventId !== "",
+    // A venue's Wi-Fi drops constantly; refetching on every focus turns the
+    // door screen into a spinner. The manifest is a starting point, not truth.
+    refetchOnWindowFocus: false,
+  })
+}
+
+/** The queue of people asking for an account. Admin-only, so it stays quiet
+ *  for staff rather than surfacing a 403. */
+export function useAccessRequests(enabled: boolean) {
+  return useQuery({
+    queryKey: ["access-requests"],
+    queryFn: () => api.get<AccessRequest[]>("/api/access-requests"),
+    enabled,
+  })
+}
+
+export function useHandleAccessRequest() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.post<AccessRequest>(`/api/access-requests/${id}/handled`),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["access-requests"] }),
   })
 }

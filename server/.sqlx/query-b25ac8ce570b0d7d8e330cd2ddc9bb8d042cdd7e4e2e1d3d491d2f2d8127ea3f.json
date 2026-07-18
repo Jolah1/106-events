@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO check_ins\n            (attendee_id, sub_event_id, event_id, checked_in_at, checked_in_by,\n             over_allowance, synced_offline)\n        VALUES ($1, $2, $3, $4, $5, $6, $7)\n        ON CONFLICT (attendee_id, sub_event_id) DO NOTHING\n        RETURNING checked_in_at\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "checked_in_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "check_ins",
+            "name": "checked_in_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Timestamptz",
+        "Uuid",
+        "Bool",
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "b25ac8ce570b0d7d8e330cd2ddc9bb8d042cdd7e4e2e1d3d491d2f2d8127ea3f"
+}

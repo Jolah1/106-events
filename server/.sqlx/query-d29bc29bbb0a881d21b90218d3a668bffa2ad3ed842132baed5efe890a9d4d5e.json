@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO access_requests (name, email, phone, about)\n         VALUES ($1, $2, $3, $4)\n         ON CONFLICT (lower(email)) DO UPDATE\n         SET name = excluded.name,\n             phone = coalesce(excluded.phone, access_requests.phone),\n             about = excluded.about,\n             created_at = now(),\n             handled_at = NULL,\n             handled_by = NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d29bc29bbb0a881d21b90218d3a668bffa2ad3ed842132baed5efe890a9d4d5e"
+}

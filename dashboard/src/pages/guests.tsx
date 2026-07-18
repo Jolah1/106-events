@@ -76,7 +76,7 @@ export function GuestsPage() {
           {notFound ? "This event doesn't exist or isn't yours." : "Couldn't load the guest list."}
         </p>
         <Button asChild variant="outline">
-          <Link to="/">Back to events</Link>
+          <Link to="/events">Back to events</Link>
         </Button>
       </div>
     )

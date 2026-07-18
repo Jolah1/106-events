@@ -191,3 +191,78 @@ export interface VendorPatch {
   amountPaidKobo?: number
   notes?: string
 }
+
+/** One person who may walk through the door, and the code that admits them. */
+export interface Attendee {
+  id: string
+  guestId: string
+  guestName: string
+  /** "Aunt Ngozi" for the guest themselves, "Aunt Ngozi +1" for a plus-one. */
+  label: string
+  headIndex: number
+  code: string
+  /** Added at the door beyond the guest's allowance. */
+  isExtra: boolean
+}
+
+export type CheckInOutcome =
+  | "admitted"
+  | "already_in"
+  | "not_invited"
+  | "unknown_code"
+  | "over_allowance"
+
+export interface CheckInResult {
+  outcome: CheckInOutcome
+  label: string | null
+  guestName: string | null
+  partyCheckedIn: number
+  partyAllowed: number
+  checkedInAt: string | null
+}
+
+export interface CheckInRequest {
+  code: string
+  /** Staff decided to admit someone past their confirmed party. */
+  allowOver?: boolean
+  offline?: boolean
+  /** When the scan happened, for a queue replayed after the signal returned. */
+  scannedAt?: string
+}
+
+export interface CheckInRecord {
+  attendeeId: string
+  label: string
+  checkedInAt: string
+  overAllowance: boolean
+  syncedOffline: boolean
+}
+
+/** Everything the door needs cached to keep working with no signal. */
+export interface DoorManifest {
+  subEventId: string
+  subEventName: string
+  eventTitle: string
+  generatedAt: string
+  entries: DoorEntry[]
+}
+
+export interface DoorEntry {
+  code: string
+  label: string
+  guestId: string
+  partyAllowed: number
+  checkedIn: boolean
+}
+
+/** Someone who asked for an account from the landing page. */
+export interface AccessRequest {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  /** What they said they're planning, in their own words. */
+  about: string
+  createdAt: string
+  handledAt: string | null
+}
