@@ -168,6 +168,52 @@ Termii payload onto that body, and verifying the provider's own signature, is
 the only piece that needs live credentials. Everything behind it is testable
 without them, which is how the RSVP state machine is covered.
 
+## Reminders
+
+Guests who haven't answered get chased automatically. An event carries a
+*ladder* of rungs — "2 weeks before", "3 days before", "the morning of" — and
+each rung, when it comes due, messages every guest with at least one part still
+`pending`.
+
+Rungs are stored as **offsets, not timestamps**. Event dates move, and a
+schedule pinned to absolute datetimes is silently wrong the moment they do;
+an offset re-anchors itself. The anchor is the start of the event's first part.
+
+**A guest is never texted twice for the same rung.** That guarantee is a unique
+constraint on `reminder_sends (schedule_id, guest_id)`, not a check in
+application code. The worker *claims* a row with `ON CONFLICT DO NOTHING`
+before sending, so two instances, an overlapping deploy, a retry, or a restart
+mid-batch cannot each decide to send. The cost of claiming first is that a
+crash between claim and send drops one reminder — much the better failure. A
+test races two workers at one rung and asserts the phone buzzes once.
+
+Three rules that are less obvious:
+
+- **Nobody is texted at 3am.** Sends are held outside 08:00–21:00 in the
+  *event's own* timezone. Held, not skipped: nothing is claimed, so the rung
+  goes out at 08:00.
+- **A late reminder still tells the truth.** The wording is composed from the
+  real remaining time at send, not from the rung's label. If the process was
+  down, a "2 weeks before" rung that fires two days out says "in 2 days".
+- **A failed send is not retried.** A provider rejection is usually a bad
+  number, and blindly retrying a timeout that actually delivered would
+  double-text. The failure is recorded with its reason for the organizer.
+
+Guests with no phone number aren't failures, they're simply not in the set —
+there's nothing to attempt. Reminders stop once the event has started, and
+answering through any channel removes a guest from the target set immediately.
+
+The worker is an in-process tokio task polling once a minute (`reminders.rs`);
+rungs are days apart and the ledger makes a missed or repeated tick harmless.
+`run_due` takes `now` as an argument rather than reading the clock, which is
+what lets the tests walk an event down its whole ladder without sleeping.
+
+Outbound sending sits behind the same kind of port as `Mailer`: `Messenger` in
+`messenger.rs`. With no provider configured it logs what would have gone out,
+so the scheduler, targeting, quiet hours and idempotency all run for real
+without an account. Wiring Termii, Africa's Talking or the WhatsApp Cloud API
+is one more variant and one more `send` arm — nothing above it changes.
+
 ## Development setup
 
 ### 1. PostgreSQL
@@ -250,6 +296,14 @@ unclear replies leaving state untouched, unknown senders being kept, provider
 retries deduping, and the webhook secret being enforced. `domain::rsvp` adds
 unit tests for the reply parser itself.
 
+Reminders cover the ladder end to end: a rung firing only once due, each rung
+being its own nudge, answering removing a guest from the set, a partial answer
+still owing one, quiet hours holding rather than dropping a send, unreachable
+guests not counting as failures, failures not being retried, reminders stopping
+once the event starts, late sends re-wording themselves, and two workers racing
+one rung sending exactly one message. `domain::reminder` unit-tests the quiet
+hours arithmetic and the wording.
+
 ## Environment variables
 
 See `server/.env.example` for the full list: `DATABASE_URL`, `ADMIN_EMAILS`,
@@ -262,7 +316,7 @@ See `server/.env.example` for the full list: `DATABASE_URL`, `ADMIN_EMAILS`,
 - [x] Phase 2 — public event pages with WhatsApp/Instagram-ready OG tags
 - [x] Phase 3 — guest list management (CSV import, plus-ones)
 - [x] Phase 4 — RSVP capture (link, WhatsApp replies, SMS fallback)
-- [ ] Phase 5 — automated reminders
+- [x] Phase 5 — automated reminders to non-responders
 - [ ] Phase 6 — ticketing via Paystack/Flutterwave (Naira, kobo integers)
 - [ ] Phase 7 — offline-tolerant QR check-in
 - [ ] Phase 8 — organizer dashboard rollups

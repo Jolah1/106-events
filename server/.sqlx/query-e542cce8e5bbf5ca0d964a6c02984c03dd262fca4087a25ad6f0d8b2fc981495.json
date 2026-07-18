@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT DISTINCT g.id, g.name, g.phone AS \"phone!\", g.rsvp_token\n        FROM guests g\n        JOIN guest_invites gi ON gi.guest_id = g.id\n        WHERE g.event_id = $1\n          AND gi.rsvp_status = 'pending'\n          AND g.phone IS NOT NULL\n        ORDER BY g.name\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "phone!",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "phone"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "rsvp_token",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "guests",
+            "name": "rsvp_token"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "e542cce8e5bbf5ca0d964a6c02984c03dd262fca4087a25ad6f0d8b2fc981495"
+}

@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router"
 import { toast } from "sonner"
 
 import { PartFields, emptyPart, partError, type PartDraft } from "@/components/part-fields"
+import { ReminderLadder } from "@/components/reminder-ladder"
 import { ShareLink } from "@/components/share-link"
 import { TimezoneSelect } from "@/components/timezone-select"
 import { Button } from "@/components/ui/button"
@@ -149,6 +150,8 @@ function EventDetailView({ event }: { event: EventDetail }) {
           />
         ))}
       </div>
+
+      <ReminderLadder eventId={event.id} />
 
       <EditEventDialog event={event} open={editOpen} onOpenChange={setEditOpen} />
 

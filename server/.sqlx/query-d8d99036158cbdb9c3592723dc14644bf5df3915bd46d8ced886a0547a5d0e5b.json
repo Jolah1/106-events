@@ -1,0 +1,90 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT rs.id, rs.event_id, rs.offset_minutes, rs.enabled, rs.created_at,\n               count(s.id) FILTER (WHERE s.status = 'sent') AS \"sent!\",\n               count(s.id) FILTER (WHERE s.status = 'failed') AS \"failed!\"\n        FROM reminder_schedules rs\n        LEFT JOIN reminder_sends s ON s.schedule_id = rs.id\n        WHERE rs.event_id = $1\n        GROUP BY rs.id\n        ORDER BY rs.offset_minutes DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "reminder_schedules",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "event_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "reminder_schedules",
+            "name": "event_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "offset_minutes",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "reminder_schedules",
+            "name": "offset_minutes"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "enabled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "reminder_schedules",
+            "name": "enabled"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "reminder_schedules",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "sent!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 6,
+        "name": "failed!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "d8d99036158cbdb9c3592723dc14644bf5df3915bd46d8ced886a0547a5d0e5b"
+}
