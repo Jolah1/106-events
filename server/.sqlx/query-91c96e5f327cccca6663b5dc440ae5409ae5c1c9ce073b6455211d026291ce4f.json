@@ -1,0 +1,112 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT se.id, se.name, se.starts_at, se.ends_at, se.venue_name, se.is_default,\n                gi.rsvp_status, gi.party_size\n         FROM guest_invites gi\n         JOIN sub_events se ON se.id = gi.sub_event_id\n         WHERE gi.guest_id = $1\n         ORDER BY se.position, se.starts_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "sub_events",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "sub_events",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "starts_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "sub_events",
+            "name": "starts_at"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "ends_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "sub_events",
+            "name": "ends_at"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "venue_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "sub_events",
+            "name": "venue_name"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "is_default",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "sub_events",
+            "name": "is_default"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "rsvp_status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "guest_invites",
+            "name": "rsvp_status"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "party_size",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "guest_invites",
+            "name": "party_size"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "91c96e5f327cccca6663b5dc440ae5409ae5c1c9ce073b6455211d026291ce4f"
+}

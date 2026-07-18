@@ -21,6 +21,10 @@ pub struct Config {
     /// else is invited from inside the app — but somebody has to be able to
     /// sign in and do the inviting, and that can't come from the app itself.
     pub admin_emails: Vec<String>,
+    /// Shared secret the inbound WhatsApp/SMS webhook requires. When unset the
+    /// webhook is open (development only) and logs a warning; in production the
+    /// provider adapter must present this.
+    pub webhook_secret: Option<String>,
     /// If set, the built dashboard SPA is served from this directory.
     pub dashboard_dist: Option<PathBuf>,
 }
@@ -57,6 +61,7 @@ impl Config {
                 .map(|e| e.trim().to_lowercase())
                 .filter(|e| !e.is_empty())
                 .collect(),
+            webhook_secret: var("WEBHOOK_SECRET"),
             dashboard_dist: var("DASHBOARD_DIST").map(PathBuf::from),
         })
     }

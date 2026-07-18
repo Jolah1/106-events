@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT sub_event_id, rsvp_status, party_size FROM guest_invites\n         WHERE guest_id = $1 ORDER BY sub_event_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "sub_event_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "guest_invites",
+            "name": "sub_event_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "rsvp_status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "guest_invites",
+            "name": "rsvp_status"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "party_size",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "guest_invites",
+            "name": "party_size"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0a066ffb54b311419b45fc5cf60ae0c45d7742c8606a3676b331443842909768"
+}

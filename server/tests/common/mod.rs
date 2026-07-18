@@ -34,14 +34,19 @@ pub fn test_config() -> Config {
         session_ttl_days: 30,
         login_token_ttl_minutes: 15,
         admin_emails: Vec::new(),
+        webhook_secret: None,
         dashboard_dist: None,
     }
 }
 
 pub fn app(pool: PgPool) -> Router {
+    app_with_config(pool, test_config())
+}
+
+pub fn app_with_config(pool: PgPool, config: Config) -> Router {
     routes::router(AppState {
         pool,
-        config: Arc::new(test_config()),
+        config: Arc::new(config),
         mailer: Arc::new(Mailer::DevLog),
     })
 }

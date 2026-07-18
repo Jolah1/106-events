@@ -115,6 +115,59 @@ Note that `domain::csv_import` normalizes CRLF up front: the csv crate's line
 counter is off by one on CRLF files, which is exactly what every real export
 is, and an error pointing at the wrong row is worse than no error at all.
 
+## RSVPs
+
+RSVP state lives on `guest_invites`, one answer per part, not one per guest:
+Aunt Ngozi can come to the reception and skip the engagement, and the headcount
+for each part has to reflect that. Each row carries `rsvp_status`
+(`pending` / `confirmed` / `declined`), `party_size`, `responded_at` and
+`responded_via`. A database CHECK keeps the pair coherent — a confirmation is
+at least one head, and anything else is zero — so a "declined, 4 attending" row
+cannot exist even if a future code path is wrong. Party size is clamped to the
+guest's allowance (`1 + plus_ones`) on the way in.
+
+Three channels write to those same rows.
+
+**The public link.** Every guest row has a `rsvp_token` (UUID, unique index),
+and `/r/{token}` is their page — no login, no app. It is server-rendered with
+no JavaScript at all: checkboxes for the parts, a party-size `<select>`, one
+submit, then a POST/redirect/GET to `?saved=true`. Submitting is a full
+statement of intent, so a part left unticked is recorded as a decline rather
+than left pending. It is served `Cache-Control: no-store`, since the page
+contains the guest's name and their current answers.
+
+**WhatsApp and SMS replies.** `POST /api/webhooks/inbound` takes a normalized
+`{channel, fromPhone, body, providerRef}`. The sender's E.164 number is matched
+against the guest list — the reason phone numbers are normalized at import. Two
+deliberate rules:
+
+- **A coarse channel confirms at the full allowance.** "1" or "yes" doesn't say
+  how many are coming, and a guest with three plus-ones who replies "yes" most
+  likely means the family. Over-counting is recoverable at the door;
+  under-counting means turning people away. The public link and the dashboard
+  both set an exact number.
+- **If the number matches guests in more than one event, the soonest upcoming
+  event wins.** Someone replying today is answering the invitation they just
+  received, not last year's wedding.
+
+`domain::rsvp::interpret` never guesses. Numeric answers are checked first
+("reply 1 to confirm, 2 to decline"), then specific phrases, then whole-word
+yes/no matching including Pidgin ("I go come", "no fit"). Anything it can't
+read is `Unclear`: the message is logged for the organizer and the RSVP is left
+untouched. "Can't wait!" is a confirmation — a naive negation rule gets that
+one backwards, so it's tested.
+
+Every inbound message is stored in `inbound_messages`, including replies from
+numbers nobody recognises, which surface to the organizer instead of vanishing.
+A unique index on `(channel, provider_ref)` makes provider retries idempotent,
+and the endpoint always answers 2xx — a non-2xx just makes a provider retry
+harder. Set `WEBHOOK_SECRET` to require an `X-Webhook-Secret` header.
+
+The endpoint is deliberately provider-agnostic: mapping a WhatsApp Cloud API or
+Termii payload onto that body, and verifying the provider's own signature, is
+the only piece that needs live credentials. Everything behind it is testable
+without them, which is how the RSVP state machine is covered.
+
 ## Development setup
 
 ### 1. PostgreSQL
@@ -152,8 +205,12 @@ committed `.sqlx/` cache lets you build without one (`SQLX_OFFLINE=true`).
 After adding or changing queries run:
 
 ```sh
-cargo sqlx prepare
+cargo sqlx prepare -- --all-targets
 ```
+
+`--all-targets` matters: the integration tests use the query macros too, and a
+plain `cargo sqlx prepare` drops their entries from the cache, which breaks
+`SQLX_OFFLINE=true cargo test` for everyone else.
 
 ### 3. Dashboard
 
@@ -186,18 +243,25 @@ cover-image URL rules, 404s), and guest lists (phone normalization, CSV import
 including dry runs, re-import dedupe, per-row errors, and the cross-event
 invitation constraint).
 
+RSVPs get their own coverage of the state transitions, per the brief: confirming
+one part while declining another, party-size clamping, changing your mind after
+answering, unticked-means-declined, coarse WhatsApp/SMS confirms and declines,
+unclear replies leaving state untouched, unknown senders being kept, provider
+retries deduping, and the webhook secret being enforced. `domain::rsvp` adds
+unit tests for the reply parser itself.
+
 ## Environment variables
 
 See `server/.env.example` for the full list: `DATABASE_URL`, `ADMIN_EMAILS`,
 `BIND_ADDR`, `APP_BASE_URL`, `PUBLIC_BASE_URL`, `SMTP_URL`, `EMAIL_FROM`,
-`COOKIE_SECURE`, `DASHBOARD_DIST`.
+`COOKIE_SECURE`, `WEBHOOK_SECRET`, `DASHBOARD_DIST`.
 
 ## Status
 
 - [x] Phase 1 — auth + event/sub-event creation (dashboard + API)
 - [x] Phase 2 — public event pages with WhatsApp/Instagram-ready OG tags
 - [x] Phase 3 — guest list management (CSV import, plus-ones)
-- [ ] Phase 4 — RSVP capture (link, WhatsApp replies, SMS fallback)
+- [x] Phase 4 — RSVP capture (link, WhatsApp replies, SMS fallback)
 - [ ] Phase 5 — automated reminders
 - [ ] Phase 6 — ticketing via Paystack/Flutterwave (Naira, kobo integers)
 - [ ] Phase 7 — offline-tolerant QR check-in

@@ -2,7 +2,9 @@ pub mod auth;
 pub mod config;
 pub mod events;
 pub mod guests;
+pub mod rsvp_store;
 pub mod team;
+pub mod webhooks;
 
 use axum::Router;
 
@@ -15,4 +17,5 @@ pub fn router() -> Router<AppState> {
         .merge(events::router())
         .merge(guests::router())
         .merge(team::router())
+        .merge(webhooks::router())
 }

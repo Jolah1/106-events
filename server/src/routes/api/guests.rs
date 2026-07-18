@@ -38,8 +38,31 @@ pub struct Guest {
     pub notes: String,
     /// The parts of the event this guest is invited to.
     pub sub_event_ids: Vec<Uuid>,
+    /// The guest's per-guest RSVP token; the public link is /r/{token}.
+    pub rsvp_token: Uuid,
+    /// Rolled up across their invited parts: "pending" (nothing answered),
+    /// "confirmed" (coming to all), "declined" (coming to none), or "partial"
+    /// (some yes, some no or still pending).
+    pub rsvp_status: String,
+    /// The most heads they'll bring to any one part — a quick "how many" for
+    /// the list. The per-sub-event rollup lives in the dashboard phase.
+    pub attending_heads: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+/// Rolls a guest's per-part RSVP states into one label for the list.
+fn rsvp_summary(invited: i64, confirmed: i64, declined: i64) -> &'static str {
+    let answered = confirmed + declined;
+    if answered == 0 {
+        "pending"
+    } else if confirmed == 0 {
+        "declined"
+    } else if confirmed == invited {
+        "confirmed"
+    } else {
+        "partial"
+    }
 }
 
 const MAX_PLUS_ONES: i32 = 20;
@@ -123,12 +146,16 @@ async fn load_guests(pool: &PgPool, event_id: Uuid, only: Option<Uuid>) -> Resul
     let rows = sqlx::query!(
         r#"
         SELECT g.id, g.event_id, g.name, g.phone, g.email, g.plus_ones,
-               g.dietary, g.notes, g.created_at, g.updated_at,
+               g.dietary, g.notes, g.rsvp_token, g.created_at, g.updated_at,
                COALESCE(
                    array_agg(gi.sub_event_id ORDER BY se.position)
                        FILTER (WHERE gi.sub_event_id IS NOT NULL),
                    '{}'
-               ) AS "sub_event_ids!: Vec<Uuid>"
+               ) AS "sub_event_ids!: Vec<Uuid>",
+               count(gi.sub_event_id) AS "invited!",
+               count(*) FILTER (WHERE gi.rsvp_status = 'confirmed') AS "confirmed!",
+               count(*) FILTER (WHERE gi.rsvp_status = 'declined') AS "declined!",
+               COALESCE(max(gi.party_size), 0) AS "attending_heads!"
         FROM guests g
         LEFT JOIN guest_invites gi ON gi.guest_id = g.id
         LEFT JOIN sub_events se ON se.id = gi.sub_event_id
@@ -154,6 +181,9 @@ async fn load_guests(pool: &PgPool, event_id: Uuid, only: Option<Uuid>) -> Resul
             dietary: r.dietary,
             notes: r.notes,
             sub_event_ids: r.sub_event_ids,
+            rsvp_token: r.rsvp_token,
+            rsvp_status: rsvp_summary(r.invited, r.confirmed, r.declined).to_string(),
+            attending_heads: r.attending_heads,
             created_at: r.created_at,
             updated_at: r.updated_at,
         })

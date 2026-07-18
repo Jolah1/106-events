@@ -80,6 +80,8 @@ export interface CreateEventInput {
   subEvents: SubEventInput[]
 }
 
+export type RsvpStatus = "pending" | "confirmed" | "declined" | "partial"
+
 export interface Guest {
   id: string
   eventId: string
@@ -91,6 +93,11 @@ export interface Guest {
   notes: string
   /** The parts of the event this guest is invited to. */
   subEventIds: string[]
+  /** The guest's RSVP link is `{publicBaseUrl}/r/{rsvpToken}`. */
+  rsvpToken: string
+  rsvpStatus: RsvpStatus
+  /** Most heads they'll bring to any one part. */
+  attendingHeads: number
   createdAt: string
   updatedAt: string
 }
