@@ -1,0 +1,168 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO vendors\n             (event_id, name, category, phone, email, service, cost_kobo, amount_paid_kobo, notes)\n         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n         RETURNING id, event_id, name, category, phone, email, service,\n                   cost_kobo, amount_paid_kobo, notes, created_at, updated_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "event_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "event_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "category",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "category"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "phone",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "phone"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "email"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "service",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "service"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "cost_kobo",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "cost_kobo"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "amount_paid_kobo",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "amount_paid_kobo"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "notes",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "notes"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Int8",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "362c16d24530671f307aa0538f905581ce08c328479fefaeefa88c0170f4caca"
+}

@@ -1,0 +1,170 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE vendors SET\n            name             = COALESCE($2, name),\n            category         = COALESCE($3, category),\n            phone            = CASE WHEN $4 THEN $5 ELSE phone END,\n            email            = CASE WHEN $6 THEN $7 ELSE email END,\n            service          = COALESCE($8, service),\n            cost_kobo        = COALESCE($9, cost_kobo),\n            amount_paid_kobo = COALESCE($10, amount_paid_kobo),\n            notes            = COALESCE($11, notes),\n            updated_at       = now()\n        WHERE id = $1\n        RETURNING id, event_id, name, category, phone, email, service,\n                  cost_kobo, amount_paid_kobo, notes, created_at, updated_at\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "event_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "event_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "category",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "category"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "phone",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "phone"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "email"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "service",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "service"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "cost_kobo",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "cost_kobo"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "amount_paid_kobo",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "amount_paid_kobo"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "notes",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "notes"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "vendors",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Bool",
+        "Text",
+        "Bool",
+        "Text",
+        "Text",
+        "Int8",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "09f8fdc440355d514eaab0f3457e2e4b0b06a3b84753513c100f7681d8ca2ee6"
+}

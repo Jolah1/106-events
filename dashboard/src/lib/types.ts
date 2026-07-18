@@ -149,3 +149,45 @@ export interface ReminderSchedule {
   failedCount: number
   createdAt: string
 }
+
+/** A supplier for one event, with what they cost and what they've been paid. */
+export interface Vendor {
+  id: string
+  eventId: string
+  name: string
+  category: string
+  phone: string | null
+  email: string | null
+  service: string
+  costKobo: number
+  amountPaidKobo: number
+  /** Derived server-side from the two amounts, so it can't drift. */
+  paidStatus: "unpaid" | "part_paid" | "paid" | "overpaid"
+  outstandingKobo: number
+  notes: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateVendorInput {
+  name: string
+  category?: string
+  phone?: string
+  email?: string
+  service?: string
+  costKobo?: number
+  amountPaidKobo?: number
+  notes?: string
+}
+
+/** `null` clears a field; omitting it leaves the field alone. */
+export interface VendorPatch {
+  name?: string
+  category?: string
+  phone?: string | null
+  email?: string | null
+  service?: string
+  costKobo?: number
+  amountPaidKobo?: number
+  notes?: string
+}
