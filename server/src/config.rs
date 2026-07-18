@@ -40,14 +40,34 @@ fn var(name: &str) -> Option<String> {
     std::env::var(name).ok().filter(|v| !v.trim().is_empty())
 }
 
+/// Where to listen.
+///
+/// Railway, Render, Heroku and friends hand the container a port in `PORT` and
+/// route to whatever binds it — a fixed port means the health check knocks on a
+/// door nobody is behind. So `PORT` wins when it's there, and it always binds
+/// every interface, because binding loopback inside a container is unreachable
+/// from outside it.
+///
+/// `BIND_ADDR` stays for hosts that don't set `PORT` (Fly) and for development,
+/// where two copies on one machine need different ports.
+fn resolve_bind_addr(port: Option<String>, bind_addr: Option<String>) -> Result<SocketAddr> {
+    if let Some(port) = port {
+        let port: u16 = port
+            .trim()
+            .parse()
+            .with_context(|| format!("invalid PORT {port:?}"))?;
+        return Ok(SocketAddr::from(([0, 0, 0, 0], port)));
+    }
+    let addr = bind_addr.unwrap_or_else(|| "0.0.0.0:8080".into());
+    addr.parse()
+        .with_context(|| format!("invalid BIND_ADDR {addr:?}"))
+}
+
 impl Config {
     pub fn from_env() -> Result<Self> {
-        let bind_addr = var("BIND_ADDR").unwrap_or_else(|| "0.0.0.0:8080".into());
         Ok(Self {
             database_url: var("DATABASE_URL").context("DATABASE_URL is required")?,
-            bind_addr: bind_addr
-                .parse()
-                .with_context(|| format!("invalid BIND_ADDR {bind_addr:?}"))?,
+            bind_addr: resolve_bind_addr(var("PORT"), var("BIND_ADDR"))?,
             app_base_url: var("APP_BASE_URL")
                 .unwrap_or_else(|| "http://localhost:5173".into())
                 .trim_end_matches('/')
@@ -73,5 +93,45 @@ impl Config {
             allow_dev_login: var("ALLOW_DEV_LOGIN")
                 .is_some_and(|v| v == "true" || v == "1"),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_platform_supplied_port_wins() {
+        // Railway hands the container a port and routes to it; ignoring that is
+        // a health check knocking on the wrong door.
+        let addr = resolve_bind_addr(Some("6543".into()), None).unwrap();
+        assert_eq!(addr.to_string(), "0.0.0.0:6543");
+    }
+
+    #[test]
+    fn a_platform_port_overrides_a_baked_in_bind_addr() {
+        // The image ships BIND_ADDR=0.0.0.0:8080; PORT must still win, or the
+        // container listens somewhere the platform isn't routing to.
+        let addr = resolve_bind_addr(Some("6543".into()), Some("0.0.0.0:8080".into())).unwrap();
+        assert_eq!(addr.to_string(), "0.0.0.0:6543");
+    }
+
+    #[test]
+    fn without_a_platform_port_bind_addr_is_honoured() {
+        let addr = resolve_bind_addr(None, Some("127.0.0.1:8090".into())).unwrap();
+        assert_eq!(addr.to_string(), "127.0.0.1:8090");
+    }
+
+    #[test]
+    fn the_default_binds_every_interface() {
+        // Not 127.0.0.1: inside a container that's unreachable from outside.
+        let addr = resolve_bind_addr(None, None).unwrap();
+        assert_eq!(addr.to_string(), "0.0.0.0:8080");
+    }
+
+    #[test]
+    fn a_nonsense_port_is_a_startup_error_not_a_silent_default() {
+        assert!(resolve_bind_addr(Some("http".into()), None).is_err());
+        assert!(resolve_bind_addr(None, Some("8080".into())).is_err());
     }
 }
