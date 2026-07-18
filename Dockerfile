@@ -57,6 +57,8 @@ USER app
 COPY --from=server --chown=app:app /app/server/target/release/server ./server
 COPY --from=dashboard --chown=app:app /app/dashboard/dist ./dashboard
 
+# BIND_ADDR is the fallback. Hosts that assign a port (Railway, Render) set
+# PORT, and the server prefers it — see config::resolve_bind_addr.
 ENV BIND_ADDR=0.0.0.0:8080 \
     DASHBOARD_DIST=/app/dashboard \
     COOKIE_SECURE=true \

@@ -330,15 +330,20 @@ safe.
 | `APP_BASE_URL` | yes | Same origin here: one service serves both. |
 | `SMTP_URL` | for sign-in | Without it, magic links are logged and never delivered, so nobody can sign in. Public pages work regardless. |
 | `EMAIL_FROM` | no | Defaults to a no-reply address. |
+| `PORT` | injected | Set by Railway/Render; the server binds it in preference to `BIND_ADDR`, so leave it alone. |
 | `COOKIE_SECURE` | yes in prod | Set in the Dockerfile already. |
 | `WEBHOOK_SECRET` | yes in prod | Required on the inbound WhatsApp/SMS webhook. |
 | `ALLOW_DEV_LOGIN` | never in prod | Returns the sign-in link in the response. Development only. |
 
 ### Railway
 
-New Project → Deploy from GitHub repo → pick this repository. Railway detects
-the Dockerfile. Then add a Postgres to the project, which sets `DATABASE_URL`,
-and set the rest of the variables above. `PUBLIC_BASE_URL` and `APP_BASE_URL`
+New Project → Deploy from GitHub repo → pick this repository. `railway.json` pins it to the
+Dockerfile, so leave the service's root directory empty — Railway's monorepo
+detection will otherwise suggest pointing it at `server/`, which builds the
+binary without the dashboard.
+
+Then add a Postgres to the project and add a *variable reference* to its
+`DATABASE_URL` on the app service, and set the rest of the variables above. `PUBLIC_BASE_URL` and `APP_BASE_URL`
 both take the domain Railway generates.
 
 ### Fly.io
