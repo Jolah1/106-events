@@ -303,6 +303,53 @@ confirm. Only as many as they confirmed for: handing someone four squares when
 they said they're coming alone invites exactly the confusion the door then has
 to sort out.
 
+## Deploying
+
+The whole app is one binary plus the dashboard's static files, so the deploy
+artifact is a single container. It needs a persistent process, not a serverless
+function: the reminder worker is an in-process 60-second tick, and sqlx holds a
+connection pool. Anything that runs a Dockerfile and gives you a Postgres will
+do — Railway, Fly.io, Render.
+
+```sh
+docker build -t 106-events .
+```
+
+The build compiles queries against the committed `server/.sqlx` cache
+(`SQLX_OFFLINE=true`), so no database is needed to build the image. Migrations
+run automatically on startup, under an advisory lock, so rolling deploys are
+safe.
+
+### Environment
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | Most hosts inject this when you attach a Postgres. |
+| `ADMIN_EMAILS` | yes | Comma-separated. Seeded as admins on boot — without one, nobody can sign in and there is no way to invite anyone. |
+| `PUBLIC_BASE_URL` | yes | The deployed origin. RSVP links, QR image URLs and OG tags are absolute and built from it. |
+| `APP_BASE_URL` | yes | Same origin here: one service serves both. |
+| `SMTP_URL` | for sign-in | Without it, magic links are logged and never delivered, so nobody can sign in. Public pages work regardless. |
+| `EMAIL_FROM` | no | Defaults to a no-reply address. |
+| `COOKIE_SECURE` | yes in prod | Set in the Dockerfile already. |
+| `WEBHOOK_SECRET` | yes in prod | Required on the inbound WhatsApp/SMS webhook. |
+| `ALLOW_DEV_LOGIN` | never in prod | Returns the sign-in link in the response. Development only. |
+
+### Railway
+
+New Project → Deploy from GitHub repo → pick this repository. Railway detects
+the Dockerfile. Then add a Postgres to the project, which sets `DATABASE_URL`,
+and set the rest of the variables above. `PUBLIC_BASE_URL` and `APP_BASE_URL`
+both take the domain Railway generates.
+
+### Fly.io
+
+`fly.toml` is checked in. `fly launch --no-deploy` to claim the app name, attach
+a Postgres, `fly secrets set` the variables above, then `fly deploy`.
+
+Note that Fly's *managed* Postgres starts at $38/month; an unmanaged
+`fly postgres create` on a small machine costs a fraction of that and is plenty
+for one venue's worth of guests.
+
 ## Development setup
 
 ### 1. PostgreSQL
