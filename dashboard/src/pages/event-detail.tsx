@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react"
-import { CalendarDays, MapPin, Pencil, Plus, Trash2, Users } from "lucide-react"
+import { CalendarDays, MapPin, Pencil, Plus, Store, Trash2, Users } from "lucide-react"
 import { Link, useNavigate, useParams } from "react-router"
 import { toast } from "sonner"
 
@@ -108,6 +108,12 @@ function EventDetailView({ event }: { event: EventDetail }) {
             <Link to={`/events/${event.id}/guests`}>
               <Users data-slot="icon" />
               Guests
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/events/${event.id}/vendors`}>
+              <Store data-slot="icon" />
+              Vendors
             </Link>
           </Button>
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>

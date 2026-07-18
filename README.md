@@ -214,6 +214,37 @@ so the scheduler, targeting, quiet hours and idempotency all run for real
 without an account. Wiring Termii, Africa's Talking or the WhatsApp Cloud API
 is one more variant and one more `send` arm — nothing above it changes.
 
+## Vendor sheet
+
+Each event carries a sheet of its suppliers — the caterer, the venue, the DJ —
+with what they cost and what they've been paid. It's an internal tracker: no
+vendor logins, no marketplace, no payment processing. The money here goes *out*
+to suppliers and is recorded as a ledger note; Phase 6's ticketing money comes
+*in* and is a different thing entirely.
+
+**All money is kobo in a `BIGINT`.** No floats go near a total — 0.1 + 0.2
+isn't 0.3, and a budget off by a kobo a line is an argument with a caterer.
+`BIGINT` because a Lagos venue priced in kobo runs well past 32 bits.
+
+**Paid status is derived, never stored.** `unpaid` / `part_paid` / `paid` /
+`overpaid` is computed from the two amounts wherever it's shown, so it cannot
+drift out of agreement with the numbers underneath it. Revise a cost down after
+paying in full and the vendor becomes `overpaid` on the spot — no reconciliation
+step, because there is no second copy of the truth.
+
+Two smaller judgements:
+
+- **A zero-cost vendor is "paid", not "unpaid".** The uncle DJing as a gift
+  belongs on the sheet and isn't owed anything.
+- **An overpayment is never a negative balance.** `outstanding` clamps at zero
+  and totals sum the per-vendor figures, so one overpaid vendor can't silently
+  cancel out another's unpaid debt in the event total.
+
+Categories are free text with suggested chips rather than an enum: the next
+event always needs one nobody listed ("aso-ebi coordinator", "small chops"), and
+a migration is a silly price for that. Vendor phone numbers get the same E.164
+normalization as guests.
+
 ## Development setup
 
 ### 1. PostgreSQL
@@ -304,6 +335,11 @@ once the event starts, late sends re-wording themselves, and two workers racing
 one rung sending exactly one message. `domain::reminder` unit-tests the quiet
 hours arithmetic and the wording.
 
+The vendor sheet covers the money: paid status tracking deposits through to an
+overpayment, overpayments not becoming negative debts, a patch leaving
+hand-typed fields alone, per-event scoping, and the sheet going with a deleted
+event. `domain::money` unit-tests the kobo arithmetic and naira formatting.
+
 ## Environment variables
 
 See `server/.env.example` for the full list: `DATABASE_URL`, `ADMIN_EMAILS`,
@@ -317,6 +353,7 @@ See `server/.env.example` for the full list: `DATABASE_URL`, `ADMIN_EMAILS`,
 - [x] Phase 3 — guest list management (CSV import, plus-ones)
 - [x] Phase 4 — RSVP capture (link, WhatsApp replies, SMS fallback)
 - [x] Phase 5 — automated reminders to non-responders
+- [x] Per-event vendor sheet (cost/paid tracker, beyond the eight phases)
 - [ ] Phase 6 — ticketing via Paystack/Flutterwave (Naira, kobo integers)
 - [ ] Phase 7 — offline-tolerant QR check-in
 - [ ] Phase 8 — organizer dashboard rollups

@@ -23,6 +23,9 @@ import type {
   SubEventInput,
   TeamMember,
   User,
+  Vendor,
+  VendorPatch,
+  CreateVendorInput,
 } from "@/lib/types"
 
 /** Server-provided origins. Static for the life of the process, so never stale. */
@@ -259,5 +262,38 @@ export function useDeleteReminder(eventId: string) {
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/api/reminders/${id}`),
     onSuccess: () => client.invalidateQueries({ queryKey: ["reminders", eventId] }),
+  })
+}
+
+export function useVendors(eventId: string) {
+  return useQuery({
+    queryKey: ["vendors", eventId],
+    queryFn: () => api.get<Vendor[]>(`/api/events/${eventId}/vendors`),
+  })
+}
+
+export function useCreateVendor(eventId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreateVendorInput) =>
+      api.post<Vendor>(`/api/events/${eventId}/vendors`, input),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["vendors", eventId] }),
+  })
+}
+
+export function useUpdateVendor(eventId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...patch }: VendorPatch & { id: string }) =>
+      api.patch<Vendor>(`/api/vendors/${id}`, patch),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["vendors", eventId] }),
+  })
+}
+
+export function useDeleteVendor(eventId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/vendors/${id}`),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["vendors", eventId] }),
   })
 }

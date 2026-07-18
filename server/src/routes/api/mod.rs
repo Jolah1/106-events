@@ -5,6 +5,7 @@ pub mod guests;
 pub mod reminders;
 pub mod rsvp_store;
 pub mod team;
+pub mod vendors;
 pub mod webhooks;
 
 use axum::Router;
@@ -19,5 +20,6 @@ pub fn router() -> Router<AppState> {
         .merge(guests::router())
         .merge(reminders::router())
         .merge(team::router())
+        .merge(vendors::router())
         .merge(webhooks::router())
 }
