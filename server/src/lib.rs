@@ -3,5 +3,7 @@ pub mod config;
 pub mod domain;
 pub mod error;
 pub mod mailer;
+pub mod messenger;
+pub mod reminders;
 pub mod routes;
 pub mod state;

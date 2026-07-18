@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE reminder_sends SET status = 'failed', detail = $3\n         WHERE schedule_id = $1 AND guest_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a6abd6685a1a4f580a04b842531012a191e88b420f3fd236e03dbff71f8ad893"
+}

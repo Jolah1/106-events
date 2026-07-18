@@ -1,0 +1,71 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT rs.id AS schedule_id, e.id AS event_id, e.title, e.timezone,\n               parts.first_start AS \"first_start!\"\n        FROM reminder_schedules rs\n        JOIN events e ON e.id = rs.event_id\n        JOIN LATERAL (\n            SELECT min(starts_at) AS first_start FROM sub_events WHERE event_id = e.id\n        ) parts ON parts.first_start IS NOT NULL\n        WHERE rs.enabled\n          AND parts.first_start > $1\n          AND $1 >= parts.first_start - make_interval(mins => rs.offset_minutes)\n        ORDER BY parts.first_start\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "schedule_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "reminder_schedules",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "event_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "timezone",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "events",
+            "name": "timezone"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "first_start!",
+        "type_info": "Timestamptz",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "1032927b2d35bc989916bd7069127bae429a333579c578268501ee5b7aa6de09"
+}

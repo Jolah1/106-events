@@ -137,3 +137,15 @@ export interface ImportReport {
   ignoredColumns: string[]
   unknownParts: string[]
 }
+
+/** A rung on an event's reminder ladder. */
+export interface ReminderSchedule {
+  id: string
+  eventId: string
+  /** How long before the event's first part this rung fires. */
+  offsetMinutes: number
+  enabled: boolean
+  sentCount: number
+  failedCount: number
+  createdAt: string
+}

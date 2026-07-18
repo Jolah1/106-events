@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE guest_invites SET rsvp_status = 'confirmed', party_size = 1\n         WHERE guest_id = $1 AND sub_event_id = (\n             SELECT id FROM sub_events WHERE event_id = $2 ORDER BY position LIMIT 1\n         )",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4ba0959abc29e9bc8f888b8eb12751e2a8aa2706a72a5daf50244417244850e9"
+}

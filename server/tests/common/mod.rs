@@ -18,6 +18,7 @@ use server::{
     auth::tokens,
     config::Config,
     mailer::Mailer,
+    messenger::Messenger,
     routes,
     state::AppState,
 };
@@ -48,6 +49,7 @@ pub fn app_with_config(pool: PgPool, config: Config) -> Router {
         pool,
         config: Arc::new(config),
         mailer: Arc::new(Mailer::DevLog),
+        messenger: Arc::new(Messenger::DevLog),
     })
 }
 

@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO reminder_sends (schedule_id, guest_id, channel, status)\n        VALUES ($1, $2, $3, 'sent')\n        ON CONFLICT (schedule_id, guest_id) DO NOTHING\n        RETURNING 1 AS \"one!\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "one!",
+        "type_info": "Int4",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "c2c79c2e21843d9bef91a0d71692d8844698b0f674277df884d62e333cd49932"
+}

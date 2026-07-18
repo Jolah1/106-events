@@ -17,6 +17,7 @@ import type {
   ImportInput,
   ImportReport,
   InviteInput,
+  ReminderSchedule,
   Role,
   SubEvent,
   SubEventInput,
@@ -234,5 +235,29 @@ export function useRemoveMember() {
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/api/team/${id}`),
     onSuccess: () => client.invalidateQueries({ queryKey: ["team"] }),
+  })
+}
+
+export function useReminders(eventId: string) {
+  return useQuery({
+    queryKey: ["reminders", eventId],
+    queryFn: () => api.get<ReminderSchedule[]>(`/api/events/${eventId}/reminders`),
+  })
+}
+
+export function useAddReminder(eventId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (offsetMinutes: number) =>
+      api.post<ReminderSchedule>(`/api/events/${eventId}/reminders`, { offsetMinutes }),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["reminders", eventId] }),
+  })
+}
+
+export function useDeleteReminder(eventId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.delete<void>(`/api/reminders/${id}`),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["reminders", eventId] }),
   })
 }
