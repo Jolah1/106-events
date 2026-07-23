@@ -104,7 +104,7 @@ export function PassesPage() {
             disabled={sync.isPending}
           >
             <RefreshCw className={sync.isPending ? "size-4 animate-spin" : "size-4"} />
-            Issue missing
+            Issue passes
           </Button>
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="size-4" />
