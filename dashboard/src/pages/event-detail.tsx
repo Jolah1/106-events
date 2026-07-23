@@ -13,6 +13,7 @@ import {
 import { Link, useNavigate, useParams } from "react-router"
 import { toast } from "sonner"
 
+import { EventRollup } from "@/components/event-rollup"
 import { PartFields, emptyPart, partError, type PartDraft } from "@/components/part-fields"
 import { ReminderLadder } from "@/components/reminder-ladder"
 import { ShareLink } from "@/components/share-link"
@@ -156,6 +157,8 @@ function EventDetailView({ event }: { event: EventDetail }) {
       <div className="mt-6">
         <ShareLink slug={event.slug} />
       </div>
+
+      <EventRollup eventId={event.id} soloDefault={soloDefault} />
 
       <div className="mt-8 mb-4 flex items-center justify-between">
         <h2 className="font-heading text-lg font-semibold">

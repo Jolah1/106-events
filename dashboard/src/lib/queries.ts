@@ -15,6 +15,7 @@ import type {
   CreateGuestInput,
   Event as EventModel,
   EventDetail,
+  EventStats,
   EventSummary,
   Guest,
   GuestPatch,
@@ -70,6 +71,16 @@ export function useEvent(id: string) {
   return useQuery({
     queryKey: ["events", id],
     queryFn: () => api.get<EventDetail>(`/api/events/${id}`),
+  })
+}
+
+/** The rollup on the event page. Numbers move under other people's actions
+ *  (guests replying, the door scanning), so a stale-while-refetch is right:
+ *  show the last figures instantly, then let them tick up. */
+export function useEventStats(eventId: string) {
+  return useQuery({
+    queryKey: ["stats", eventId],
+    queryFn: () => api.get<EventStats>(`/api/events/${eventId}/stats`),
   })
 }
 

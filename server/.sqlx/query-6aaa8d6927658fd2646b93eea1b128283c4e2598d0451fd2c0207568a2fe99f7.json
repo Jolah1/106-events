@@ -1,0 +1,44 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            count(*) AS \"guest_count!\",\n            COALESCE(sum(1 + g.plus_ones), 0)::bigint AS \"heads_invited!\",\n            count(*) FILTER (WHERE\n                EXISTS (SELECT 1 FROM guest_invites gi WHERE gi.guest_id = g.id)\n                AND NOT EXISTS (SELECT 1 FROM guest_invites gi\n                                WHERE gi.guest_id = g.id AND gi.rsvp_status = 'pending')\n            ) AS \"replied_guests!\",\n            count(*) FILTER (WHERE\n                EXISTS (SELECT 1 FROM guest_invites gi\n                        WHERE gi.guest_id = g.id AND gi.rsvp_status = 'pending')\n            ) AS \"awaiting_guests!\"\n        FROM guests g\n        WHERE g.event_id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "guest_count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "heads_invited!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 2,
+        "name": "replied_guests!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 3,
+        "name": "awaiting_guests!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "6aaa8d6927658fd2646b93eea1b128283c4e2598d0451fd2c0207568a2fe99f7"
+}

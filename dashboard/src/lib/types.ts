@@ -255,6 +255,42 @@ export interface DoorEntry {
   checkedIn: boolean
 }
 
+/** Where one part of the event stands: RSVPs in, heads through the door. */
+export interface PartStats {
+  subEventId: string
+  name: string
+  startsAt: string
+  isDefault: boolean
+  /** Parties invited to this part, and how each stands. */
+  invitedParties: number
+  confirmedParties: number
+  declinedParties: number
+  pendingParties: number
+  /** Heads confirmed parties said they'd bring — what catering cooks for. */
+  confirmedHeads: number
+  /** Heads actually admitted, including walk-ins past the allowance. */
+  checkedInHeads: number
+  overAllowanceHeads: number
+  offlineSyncedHeads: number
+}
+
+/** The organizer's rollup, derived server-side so it can't drift. */
+export interface EventStats {
+  eventId: string
+  guestCount: number
+  /** The ceiling: every party at full allowance. */
+  headsInvited: number
+  /** Guests with an answer for every part they're invited to. */
+  repliedGuests: number
+  /** Guests with at least one part still unanswered. */
+  awaitingGuests: number
+  vendorCount: number
+  vendorCostKobo: number
+  vendorPaidKobo: number
+  vendorOutstandingKobo: number
+  parts: PartStats[]
+}
+
 /** Someone who asked for an account from the landing page. */
 export interface AccessRequest {
   id: string
