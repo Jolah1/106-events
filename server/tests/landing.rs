@@ -33,7 +33,7 @@ async fn the_landing_page_says_what_the_product_does(pool: PgPool) {
 
     assert_eq!(status, StatusCode::OK);
     assert!(body.contains("One guest list."), "the headline");
-    assert!(body.contains("Ask for an account"), "the way in");
+    assert!(body.contains("Work with us"), "the way in");
     assert!(
         body.contains("/q/MTXN9RGJ"),
         "the example pass points at the real QR endpoint"

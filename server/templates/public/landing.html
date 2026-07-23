@@ -28,6 +28,11 @@
 
 .lp { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 
+/* Anchor navigation should glide, not jump — unless motion is unwelcome. */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
 /* --- navigation ---------------------------------------------------------- */
 
 .lp-nav {
@@ -35,9 +40,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 0;
+  padding: 14px 0;
 }
-.lp-nav .wordmark { font-size: 19px; letter-spacing: 0.01em; }
+.lp-brand { display: block; line-height: 0; }
+.lp-brand img { height: 60px; width: auto; display: block; }
+.lp-nav-links { display: none; }
+.lp-nav-actions { display: flex; align-items: center; gap: 12px; }
 .lp-signin {
   color: var(--muted);
   text-decoration: none;
@@ -48,6 +56,7 @@
   transition: color 0.2s, border-color 0.2s;
 }
 .lp-signin:hover { color: var(--text); border-color: rgba(240, 207, 138, 0.35); }
+.lp-cta-sm { padding: 9px 18px; font-size: 14px; }
 
 /* --- hero ---------------------------------------------------------------- */
 
@@ -577,6 +586,14 @@
   .lp-stage::before { left: -34px; }
   .lp-stats { grid-template-columns: repeat(4, 1fr); }
   .lp-days-grid { grid-template-columns: repeat(3, 1fr); }
+  .lp-nav-links { display: flex; gap: 26px; }
+  .lp-nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 15px;
+    transition: color 0.2s;
+  }
+  .lp-nav-links a:hover { color: var(--text); }
 }
 @media (min-width: 940px) {
   .lp-hero { padding-block: 64px 40px; }
@@ -615,8 +632,18 @@
 {% block body %}
 <div class="lp">
   <nav class="lp-nav">
-    <span class="wordmark"><b>106</b> Events</span>
-    <a class="lp-signin" href="/login">Sign in</a>
+    <a class="lp-brand" href="/" aria-label="106 Events — home">
+      <img src="{{ meta.home_url }}/static/img/logo-v1.webp" width="512" height="399"
+           alt="106 Events">
+    </a>
+    <div class="lp-nav-links">
+      <a href="#how">What it does</a>
+      <a href="#faq">Questions</a>
+    </div>
+    <div class="lp-nav-actions">
+      <a class="lp-signin" href="/login">Sign in</a>
+      <a class="lp-cta lp-cta-sm lp-metal" href="#request">Work with us</a>
+    </div>
   </nav>
 </div>
 
@@ -633,7 +660,7 @@
         walks in free with their own code.
       </p>
       <div class="lp-cta-row">
-        <a class="lp-cta lp-metal" href="#request">Request access</a>
+        <a class="lp-cta lp-metal" href="#request">Work with us</a>
         <span class="lp-cta-note">Invite-only while we're small.</span>
       </div>
     </div>
@@ -745,7 +772,7 @@
     </div>
   </section>
 
-  <div class="lp-thread">
+  <div class="lp-thread" id="how">
     <section class="lp-stage">
       <div class="lp-stage-head">
         <p class="lp-stage-label">Invited</p>
@@ -833,8 +860,8 @@
     <div class="lp-founder-grid">
       <figure class="lp-founder-photo">
         <img src="{{ meta.home_url }}/static/img/founder-v1.webp"
-             width="900" height="1125" loading="lazy"
-             alt="Sandra Kelvin, Executive Director of 106 Events, in a beaded emerald gown">
+             width="618" height="772" loading="lazy"
+             alt="Sandra Kelvin, Executive Director of 106 Events, in a black double-breasted suit">
         <figcaption>Sandra Kelvin — Executive Director, 106 Events</figcaption>
       </figure>
       <div class="lp-founder-body">
@@ -853,7 +880,7 @@
     </div>
   </section>
 
-  <section class="lp-faq" aria-labelledby="lp-faq-h">
+  <section class="lp-faq" id="faq" aria-labelledby="lp-faq-h">
     <h2 id="lp-faq-h">Questions people ask</h2>
     <details>
       <summary>What does it cost?</summary>
@@ -899,7 +926,7 @@
   <section class="lp-ask" id="request">
     <div class="lp-ask-grid">
     <div class="lp-ask-head">
-      <h2>Ask for an account</h2>
+      <h2>Work with us</h2>
       <p>
         We're letting planners in a few at a time so we can set each one up
         properly. Tell us what you're planning and we'll write back.

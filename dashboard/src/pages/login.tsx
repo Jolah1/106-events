@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query"
 import { ArrowRight, MailCheck } from "lucide-react"
 import { useNavigate } from "react-router"
 
-import { Wordmark } from "@/components/wordmark"
+import logo from "@/assets/logo.webp"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -38,7 +38,11 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
-      <Wordmark className="mb-8 text-3xl" />
+      {/* A plain anchor, not a router Link: the landing page is served by the
+          server at /, outside this SPA's routes. */}
+      <a href="/" aria-label="106 Events — home" className="mb-8">
+        <img src={logo} alt="106 Events" className="h-28 w-auto" />
+      </a>
       <div className="w-full max-w-sm overflow-hidden rounded-xl border bg-card">
         <div className="gilt-seam" />
         {sent ? (
@@ -131,7 +135,7 @@ export function LoginPage() {
         )}
       </div>
       <p className="mt-6 text-center text-xs text-muted-foreground">
-        Plan weddings, owambes and everything in between.
+        Every event on one guest list — owambes, launches and everything in between.
       </p>
     </div>
   )

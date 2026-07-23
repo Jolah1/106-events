@@ -41,6 +41,7 @@ pub fn router() -> Router<AppState> {
         .route("/q/{code}", get(qr_image))
         .route("/static/favicon-v1.svg", get(favicon))
         .route("/static/og-default-v1.png", get(og_default))
+        .route("/static/img/logo-v1.webp", get(img_logo))
         .route("/static/img/hero-owambe-v1.webp", get(img_hero))
         .route("/static/img/weddings-v1.webp", get(img_weddings))
         .route("/static/img/corporate-v1.webp", get(img_corporate))
@@ -659,6 +660,10 @@ async fn og_default() -> Response {
 // Landing photography. Licensed for this use: the hero and category shots are
 // Pexels (free commercial use, no attribution required); the founder portrait
 // was supplied by the company. Baked in like the fonts — same reasoning.
+async fn img_logo() -> Response {
+    asset(include_bytes!("../../static/img/logo.webp"), "image/webp")
+}
+
 async fn img_hero() -> Response {
     asset(include_bytes!("../../static/img/hero-owambe.webp"), "image/webp")
 }
