@@ -42,7 +42,7 @@ pub fn router() -> Router<AppState> {
         .route("/static/favicon-v1.svg", get(favicon))
         .route("/static/og-default-v1.png", get(og_default))
         .route("/static/img/logo-v1.webp", get(img_logo))
-        .route("/static/img/hero-v2.webp", get(img_hero))
+        .route("/static/img/hero-v3.webp", get(img_hero))
         .route("/static/img/weddings-v1.webp", get(img_weddings))
         .route("/static/img/corporate-v1.webp", get(img_corporate))
         .route("/static/img/social-v1.webp", get(img_social))
