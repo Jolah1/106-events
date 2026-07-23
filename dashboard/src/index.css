@@ -77,8 +77,8 @@
     --border: oklch(0.92 0.04 90 / 11%);
     --input: oklch(0.92 0.04 90 / 15%);
     --ring: oklch(0.76 0.124 88 / 55%);
-    --gold: oklch(0.76 0.124 88);
-    --gold-bright: oklch(0.85 0.105 92);
+    --gold: oklch(0.83 0.153 88);
+    --gold-bright: oklch(0.9 0.135 92);
     --chart-1: oklch(0.76 0.124 88);
     --chart-2: oklch(0.66 0.02 88);
     --chart-3: oklch(0.5 0.015 85);

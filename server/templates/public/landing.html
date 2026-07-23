@@ -8,23 +8,80 @@
 :root {
   /* The dark side of gold. Gold that is only ever one flat tone reads as
      yellow; what makes it metal is having a shadow to catch. */
-  --gold-deep: #8a6a2f;
-  --gold-shadow: rgba(138, 106, 47, 0.25);
+  --gold-deep: #a2761f;
+  --gold-shadow: rgba(162, 118, 31, 0.35);
 }
 
 /* One gradient, reused wherever a surface should look struck rather than
    filled. The stops are deliberately uneven — an even ramp looks like a
-   gradient, an uneven one looks like light moving across a curve. */
+   gradient, an uneven one looks like light moving across a curve. The hot
+   white-gold stop is what the sheen animation drags across the surface. */
 .lp-metal {
+  position: relative;
+  overflow: hidden;
   background-image: linear-gradient(
     118deg,
     var(--gold-deep) 0%,
-    var(--gold) 22%,
-    var(--gold-bright) 40%,
-    var(--gold) 56%,
+    var(--gold) 20%,
+    var(--gold-bright) 36%,
+    #fff3c4 44%,
+    var(--gold-bright) 52%,
+    var(--gold) 66%,
     var(--gold-deep) 100%
   );
+  background-size: 220% 100%;
 }
+/* Glitter: a handful of pinprick highlights that catch and release. They live
+   on the metal, not the page — jewellery, not confetti. */
+.lp-metal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 1.5px at 22% 32%, #fff 0 1.5px, transparent 2.6px),
+    radial-gradient(circle 1px   at 67% 62%, #fffbe8 0 1px, transparent 2px),
+    radial-gradient(circle 1.3px at 85% 26%, #fff 0 1.3px, transparent 2.4px),
+    radial-gradient(circle 1px   at 41% 74%, #fff6d8 0 1px, transparent 2px),
+    radial-gradient(circle 0.8px at 54% 22%, #fff 0 0.8px, transparent 1.8px);
+  opacity: 0.35;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lp-metal { animation: lp-sheen 5.5s ease-in-out infinite alternate; }
+  .lp-metal::after { animation: lp-twinkle 3.4s ease-in-out infinite; }
+}
+@keyframes lp-sheen {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes lp-twinkle {
+  0%, 100% { opacity: 0.1; }
+  32%      { opacity: 0.9; }
+  48%      { opacity: 0.3; }
+  64%      { opacity: 0.8; }
+}
+
+/* Gold type gets the same struck surface, clipped to the letterforms. */
+.lp-gilt {
+  background-image: linear-gradient(
+    100deg,
+    var(--gold-deep),
+    var(--gold) 30%,
+    #ffeaa4 50%,
+    var(--gold) 70%,
+    var(--gold-deep)
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lp-gilt { animation: lp-sheen 6s ease-in-out infinite alternate; }
+}
+/* Outrank the flat-gold color rules below (.lp-h1 span, .lp-stat b), which
+   would otherwise paint over the clipped gradient. */
+.lp-h1 span.lp-gilt, .lp-stat b.lp-gilt { color: transparent; }
 
 .lp { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 
@@ -653,22 +710,21 @@
   <div class="lp-hero-grid">
     <div>
       <p class="lp-eyebrow">Weddings · Corporate · Social</p>
-      <h1 class="lp-h1">One guest list.<br><span>Every kind of event.</span></h1>
+      <h1 class="lp-h1">One guest list.<br><span class="lp-gilt">Every kind of event.</span></h1>
       <p class="lp-lede">
         A three-part wedding, a product launch, a burial, a 60th — every part of
-        your event on one list that keeps up. Guests reply on WhatsApp. Everyone
-        walks in free with their own code.
+        your event on one list that keeps up. Guests reply on WhatsApp and walk
+        in with their own code.
       </p>
       <div class="lp-cta-row">
         <a class="lp-cta lp-metal" href="#request">Work with us</a>
-        <span class="lp-cta-note">Invite-only while we're small.</span>
       </div>
     </div>
 
     <figure class="lp-hero-photo">
-      <img src="{{ meta.home_url }}/static/img/hero-owambe-v1.webp"
-           width="1100" height="1375" fetchpriority="high"
-           alt="A couple in matching purple aso-oke on a green velvet seat, under a floral arch at their traditional engagement">
+      <img src="{{ meta.home_url }}/static/img/hero-v2.webp"
+           width="1400" height="1750" fetchpriority="high"
+           alt="A couple in orange and white traditional attire, photographed against deep green at their engagement">
       <figcaption class="lp-photo-cap">
         <b>The traditional engagement</b>
         <span>One part of one client's three-part weekend</span>
@@ -679,10 +735,10 @@
   <!-- Not client counts: we're new and won't pretend otherwise. Each figure
        is a promise the software keeps, and the thread below explains how. -->
   <div class="lp-stats">
-    <div class="lp-stat"><b>₦0</b><span>what a guest pays at the door — every event is free to attend</span></div>
-    <div class="lp-stat"><b>1 link</b><span>answers every part they're invited to, no app, no account</span></div>
-    <div class="lp-stat"><b>8 characters</b><span>the code staff read aloud when a phone is dead</span></div>
-    <div class="lp-stat"><b>9pm</b><span>when reminders stop — where the event is, not the server</span></div>
+    <div class="lp-stat"><b class="lp-gilt">1 QR</b><span>per head at the door — every guest checked in by code, plus-ones included</span></div>
+    <div class="lp-stat"><b class="lp-gilt">1 link</b><span>answers every part they're invited to, no app, no account</span></div>
+    <div class="lp-stat"><b class="lp-gilt">8 characters</b><span>the code staff read aloud when a phone is dead</span></div>
+    <div class="lp-stat"><b class="lp-gilt">9pm</b><span>when reminders stop — where the event is, not the server</span></div>
   </div>
 </header>
 
@@ -819,7 +875,7 @@
     <section class="lp-stage">
       <div class="lp-stage-head">
         <p class="lp-stage-label">At the door</p>
-        <h2>Everyone gets in free. Everyone gets counted.</h2>
+        <h2>Every guest checked by code. Everyone counted.</h2>
       </div>
       <div class="lp-stage-body">
         <p>
@@ -885,9 +941,9 @@
     <details>
       <summary>What does it cost?</summary>
       <p>
-        Nothing while we're in early access, and <b>guests never pay</b> —
-        every event on 106 is free to attend. When paid plans arrive they'll
-        be for organizers, and everyone already inside keeps what they have.
+        Every event is different, so we quote each one. Tell us what you're
+        planning through the form below and <b>we'll come back with exact
+        costs</b> before anything is agreed.
       </p>
     </details>
     <details>
@@ -915,9 +971,9 @@
       </p>
     </details>
     <details>
-      <summary>How do I get an account?</summary>
+      <summary>How do we start?</summary>
       <p>
-        Ask below. We're invite-only while we're small — we set each planner
+        Fill in the form below with what you're planning. We set every client
         up personally and <b>write back to every request</b>.
       </p>
     </details>
@@ -928,8 +984,8 @@
     <div class="lp-ask-head">
       <h2>Work with us</h2>
       <p>
-        We're letting planners in a few at a time so we can set each one up
-        properly. Tell us what you're planning and we'll write back.
+        Tell us what you're planning and we'll write back with how we'd run
+        it — and what it costs. Every client is set up personally.
       </p>
     </div>
 

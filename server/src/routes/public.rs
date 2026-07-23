@@ -42,7 +42,7 @@ pub fn router() -> Router<AppState> {
         .route("/static/favicon-v1.svg", get(favicon))
         .route("/static/og-default-v1.png", get(og_default))
         .route("/static/img/logo-v1.webp", get(img_logo))
-        .route("/static/img/hero-owambe-v1.webp", get(img_hero))
+        .route("/static/img/hero-v2.webp", get(img_hero))
         .route("/static/img/weddings-v1.webp", get(img_weddings))
         .route("/static/img/corporate-v1.webp", get(img_corporate))
         .route("/static/img/social-v1.webp", get(img_social))
@@ -113,8 +113,8 @@ fn landing_meta(state: &AppState) -> Meta {
     Meta {
         page_title: "106 Events — guest lists, RSVPs and the door, for any event".into(),
         og_title: "106 Events".into(),
-        og_description: "Guest lists, RSVPs, reminders and a free QR door — for \
-                         weddings, corporate events and every celebration in between."
+        og_description: "Guest lists, RSVPs, reminders and QR check-in at the door — \
+                         for weddings, corporate events and every celebration in between."
             .into(),
         og_image: format!("{base}/static/og-default-v1.png"),
         og_image_alt: "106 Events".into(),
@@ -665,7 +665,7 @@ async fn img_logo() -> Response {
 }
 
 async fn img_hero() -> Response {
-    asset(include_bytes!("../../static/img/hero-owambe.webp"), "image/webp")
+    asset(include_bytes!("../../static/img/hero.webp"), "image/webp")
 }
 
 async fn img_weddings() -> Response {
