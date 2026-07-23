@@ -42,9 +42,9 @@ pub fn router() -> Router<AppState> {
         .route("/static/favicon-v1.svg", get(favicon))
         .route("/static/og-default-v1.png", get(og_default))
         .route("/static/img/hero-owambe-v1.webp", get(img_hero))
-        .route("/static/img/day-engagement-v1.webp", get(img_engagement))
-        .route("/static/img/day-church-v1.webp", get(img_church))
-        .route("/static/img/day-reception-v1.webp", get(img_reception))
+        .route("/static/img/weddings-v1.webp", get(img_weddings))
+        .route("/static/img/corporate-v1.webp", get(img_corporate))
+        .route("/static/img/social-v1.webp", get(img_social))
         .route("/static/img/founder-v1.webp", get(img_founder))
         .route("/static/fonts/fraunces-latin-v1.woff2", get(font_latin))
         .route("/static/fonts/fraunces-latin-ext-v1.woff2", get(font_latin_ext))
@@ -110,10 +110,10 @@ struct LandingQuery {
 fn landing_meta(state: &AppState) -> Meta {
     let base = state.config.public_base_url.clone();
     Meta {
-        page_title: "106 Events — one guest list, three parties".into(),
+        page_title: "106 Events — guest lists, RSVPs and the door, for any event".into(),
         og_title: "106 Events".into(),
-        og_description: "Guest lists, RSVPs, reminders and a free door — built for \
-                         how Nigerian weddings actually run."
+        og_description: "Guest lists, RSVPs, reminders and a free QR door — for \
+                         weddings, corporate events and every celebration in between."
             .into(),
         og_image: format!("{base}/static/og-default-v1.png"),
         og_image_alt: "106 Events".into(),
@@ -656,23 +656,23 @@ async fn og_default() -> Response {
     asset(include_bytes!("../../static/og-default.png"), "image/png")
 }
 
-// Landing photography. Licensed for this use: the three wedding-day shots are
+// Landing photography. Licensed for this use: the hero and category shots are
 // Pexels (free commercial use, no attribution required); the founder portrait
 // was supplied by the company. Baked in like the fonts — same reasoning.
 async fn img_hero() -> Response {
     asset(include_bytes!("../../static/img/hero-owambe.webp"), "image/webp")
 }
 
-async fn img_engagement() -> Response {
-    asset(include_bytes!("../../static/img/day-engagement.webp"), "image/webp")
+async fn img_weddings() -> Response {
+    asset(include_bytes!("../../static/img/weddings.webp"), "image/webp")
 }
 
-async fn img_church() -> Response {
-    asset(include_bytes!("../../static/img/day-church.webp"), "image/webp")
+async fn img_corporate() -> Response {
+    asset(include_bytes!("../../static/img/corporate.webp"), "image/webp")
 }
 
-async fn img_reception() -> Response {
-    asset(include_bytes!("../../static/img/day-reception.webp"), "image/webp")
+async fn img_social() -> Response {
+    asset(include_bytes!("../../static/img/social.webp"), "image/webp")
 }
 
 async fn img_founder() -> Response {
