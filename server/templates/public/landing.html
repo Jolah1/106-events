@@ -52,7 +52,7 @@
 /* --- hero ---------------------------------------------------------------- */
 
 .lp-hero { padding-block: 40px 24px; }
-.lp-hero-grid { display: grid; gap: 48px; }
+.lp-hero-grid { display: grid; gap: 40px; }
 
 .lp-eyebrow {
   margin: 0 0 20px;
@@ -69,8 +69,6 @@
   line-height: 1.02;
   letter-spacing: -0.03em;
 }
-/* The second line drops to the muted tone: the sentence is one thought, but
-   the emphasis belongs on the first half. */
 .lp-h1 span { color: var(--gold); }
 .lp-lede {
   margin: 24px 0 0;
@@ -103,7 +101,131 @@
 }
 .lp-cta-note { color: var(--muted); font-size: 14px; }
 
-/* --- the hero's event card ----------------------------------------------- */
+/* The hero photograph is framed like the pass and the cards — hairline and
+   dark ground — so it reads as something from the product's world, not a
+   stock banner. The caption strip names what you're looking at, in the
+   product's own vocabulary. */
+.lp-hero-photo {
+  margin: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--raised);
+  box-shadow: 0 40px 80px -50px rgba(0, 0, 0, 0.9);
+}
+.lp-hero-photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+.lp-photo-cap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 18px;
+  border-top: 1px solid var(--hairline);
+  font-size: 13px;
+  color: var(--muted);
+}
+.lp-photo-cap b {
+  color: var(--gold);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lp-hero-photo { animation: lp-settle 0.8s cubic-bezier(0.2, 0.7, 0.3, 1) backwards 0.1s; }
+}
+
+/* --- what the product holds true ----------------------------------------- */
+/* Not client counts — we're new and won't pretend otherwise. Each figure is a
+   promise the software actually keeps, and the thread below explains how. */
+
+.lp-stats {
+  margin: 72px 0 0;
+  padding: 26px 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px 32px;
+}
+.lp-stat b {
+  display: block;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(26px, 4vw, 34px);
+  line-height: 1;
+  color: var(--gold);
+}
+.lp-stat span {
+  display: block;
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 22ch;
+}
+
+/* --- the weekend, in pictures -------------------------------------------- */
+/* Three photographs, three parts — the headline made visible. The captions
+   use the same day-labels an organizer's schedule does. */
+
+.lp-days { margin: 96px 0 0; }
+.lp-days-head { max-width: 52ch; }
+.lp-days-head h2 {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(28px, 5vw, 40px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.lp-days-head p { margin: 14px 0 0; color: var(--muted); line-height: 1.7; }
+.lp-days-grid { margin: 36px 0 0; display: grid; gap: 20px; }
+.lp-day {
+  margin: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--raised);
+}
+.lp-day img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.lp-day:hover img { transform: scale(1.025); }
+.lp-day figcaption { padding: 14px 18px 16px; border-top: 1px solid var(--hairline); }
+.lp-day-label {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.lp-day-note { margin: 6px 0 0; font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+/* --- the live card ------------------------------------------------------- */
+
+.lp-live { margin: 96px 0 0; }
+.lp-live-grid { display: grid; gap: 36px; }
+.lp-live-head h2 {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(28px, 5vw, 40px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.lp-live-head p { margin: 14px 0 0; max-width: 44ch; color: var(--muted); line-height: 1.7; }
 
 .lp-card {
   border: 1px solid var(--hairline);
@@ -265,6 +387,43 @@
   color: var(--gold);
 }
 
+/* --- the planner behind it ----------------------------------------------- */
+
+.lp-founder { margin: 104px 0 0; }
+.lp-founder-grid { display: grid; gap: 36px; }
+.lp-founder-photo {
+  margin: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--raised);
+  max-width: 420px;
+}
+.lp-founder-photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+.lp-founder-photo figcaption {
+  padding: 13px 18px;
+  border-top: 1px solid var(--hairline);
+  font-size: 13px;
+  color: var(--muted);
+}
+.lp-founder-body .lp-eyebrow { margin-bottom: 16px; }
+.lp-founder-quote {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(22px, 3.6vw, 30px);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+.lp-founder-quote::before { content: "“"; color: var(--gold); }
+.lp-founder-quote::after { content: "”"; color: var(--gold); }
+.lp-founder-body p { margin: 18px 0 0; max-width: 52ch; color: var(--muted); line-height: 1.7; }
+
 /* --- request access ------------------------------------------------------ */
 
 .lp-ask { margin: 104px 0 0; }
@@ -360,11 +519,23 @@
   .lp-pair { grid-template-columns: 1fr 1fr; }
   .lp-thread { padding-left: 34px; }
   .lp-stage::before { left: -34px; }
+  .lp-stats { grid-template-columns: repeat(4, 1fr); }
+  .lp-days-grid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (min-width: 940px) {
   .lp-hero { padding-block: 64px 40px; }
-  .lp-hero-grid { grid-template-columns: 1fr 0.85fr; align-items: center; gap: 64px; }
+  .lp-hero-grid { grid-template-columns: 1fr 0.8fr; align-items: center; gap: 64px; }
   .lp-thread { margin-top: 104px; }
+  .lp-live-grid {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+    gap: 0 56px;
+    align-items: center;
+  }
+  .lp-founder-grid {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: 0 64px;
+    align-items: center;
+  }
   .lp-ask-grid {
     grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
     gap: 0 56px;
@@ -411,41 +582,112 @@
       </div>
     </div>
 
-    <!-- Not a screenshot: the same markup and type the real product uses. -->
-    <div class="lp-card">
-      <div class="lp-card-head">
-        <h2 class="lp-card-title display">Ọláṣubọmi &amp; Ṣadé</h2>
-        <span class="lp-card-meta">Nov 2026</span>
-      </div>
+    <figure class="lp-hero-photo">
+      <img src="{{ meta.home_url }}/static/img/hero-owambe-v1.webp"
+           width="1100" height="1375" fetchpriority="high"
+           alt="A couple in matching purple aso-oke on a green velvet seat, under a floral arch at their traditional engagement">
+      <figcaption class="lp-photo-cap">
+        <b>The traditional engagement</b>
+        <span>Friday — before the church, before the reception</span>
+      </figcaption>
+    </figure>
+  </div>
 
-      <div class="lp-part">
-        <div>
-          <p class="lp-part-name">Traditional Engagement</p>
-          <p class="lp-part-when">Fri 20 Nov · Ikeja</p>
-        </div>
-        <p class="lp-part-count"><b>118</b><span>coming</span></p>
-      </div>
-      <div class="lp-part">
-        <div>
-          <p class="lp-part-name">Church Ceremony</p>
-          <p class="lp-part-when">Sat 21 Nov · Ikoyi</p>
-        </div>
-        <p class="lp-part-count"><b>240</b><span>coming</span></p>
-      </div>
-      <div class="lp-part">
-        <div>
-          <p class="lp-part-name">Reception</p>
-          <p class="lp-part-when">Sat 21 Nov · Victoria Island</p>
-        </div>
-        <p class="lp-part-count"><b>310</b><span>coming</span></p>
-      </div>
-
-      <p class="lp-card-foot">412 invited · 89 still to answer</p>
-    </div>
+  <!-- Not client counts: we're new and won't pretend otherwise. Each figure
+       is a promise the software keeps, and the thread below explains how. -->
+  <div class="lp-stats">
+    <div class="lp-stat"><b>₦0</b><span>what a guest pays at the door — every event is free to attend</span></div>
+    <div class="lp-stat"><b>1 link</b><span>answers every part they're invited to, no app, no account</span></div>
+    <div class="lp-stat"><b>8 characters</b><span>the code staff read aloud when a phone is dead</span></div>
+    <div class="lp-stat"><b>9pm</b><span>when reminders stop — where the wedding is, not the server</span></div>
   </div>
 </header>
 
 <main class="lp">
+  <section class="lp-days">
+    <div class="lp-days-head">
+      <h2>The same wedding, three times over</h2>
+      <p>
+        A Nigerian wedding is a weekend, not an evening. Each part has its own
+        venue, its own dress code, and its own list — and half the headache is
+        that they overlap without matching.
+      </p>
+    </div>
+    <div class="lp-days-grid">
+      <figure class="lp-day">
+        <img src="{{ meta.home_url }}/static/img/day-engagement-v1.webp"
+             width="760" height="950" loading="lazy"
+             alt="A bride in layered red beads and veil at a traditional engagement">
+        <figcaption>
+          <p class="lp-day-label">Friday · Engagement</p>
+          <p class="lp-day-note">Family and the family's family. A different list from tomorrow's.</p>
+        </figcaption>
+      </figure>
+      <figure class="lp-day">
+        <img src="{{ meta.home_url }}/static/img/day-church-v1.webp"
+             width="760" height="950" loading="lazy"
+             alt="A couple close together on their church wedding day">
+        <figcaption>
+          <p class="lp-day-label">Saturday · Church</p>
+          <p class="lp-day-note">Some guests come only for this, and they still count once.</p>
+        </figcaption>
+      </figure>
+      <figure class="lp-day">
+        <img src="{{ meta.home_url }}/static/img/day-reception-v1.webp"
+             width="760" height="950" loading="lazy"
+             alt="A reception hall at night, flowers and candlelight over the head table">
+        <figcaption>
+          <p class="lp-day-label">Saturday night · Reception</p>
+          <p class="lp-day-note">Everyone you couldn't fit in the church, counted at the door.</p>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="lp-live">
+    <div class="lp-live-grid">
+      <div class="lp-live-head">
+        <h2>The whole weekend on one card</h2>
+        <p>
+          This isn't a screenshot — it's the same markup and type the product
+          draws, with the numbers an organizer watches: who's coming to which
+          part, and who still hasn't said.
+        </p>
+      </div>
+
+      <div class="lp-card">
+        <div class="lp-card-head">
+          <h2 class="lp-card-title display">Ọláṣubọmi &amp; Ṣadé</h2>
+          <span class="lp-card-meta">Nov 2026</span>
+        </div>
+
+        <div class="lp-part">
+          <div>
+            <p class="lp-part-name">Traditional Engagement</p>
+            <p class="lp-part-when">Fri 20 Nov · Ikeja</p>
+          </div>
+          <p class="lp-part-count"><b>118</b><span>coming</span></p>
+        </div>
+        <div class="lp-part">
+          <div>
+            <p class="lp-part-name">Church Ceremony</p>
+            <p class="lp-part-when">Sat 21 Nov · Ikoyi</p>
+          </div>
+          <p class="lp-part-count"><b>240</b><span>coming</span></p>
+        </div>
+        <div class="lp-part">
+          <div>
+            <p class="lp-part-name">Reception</p>
+            <p class="lp-part-when">Sat 21 Nov · Victoria Island</p>
+          </div>
+          <p class="lp-part-count"><b>310</b><span>coming</span></p>
+        </div>
+
+        <p class="lp-card-foot">412 invited · 89 still to answer</p>
+      </div>
+    </div>
+  </section>
+
   <div class="lp-thread">
     <section class="lp-stage">
       <div class="lp-stage-head">
@@ -529,6 +771,29 @@
       </div>
     </section>
   </div>
+
+  <section class="lp-founder">
+    <div class="lp-founder-grid">
+      <figure class="lp-founder-photo">
+        <img src="{{ meta.home_url }}/static/img/founder-v1.webp"
+             width="900" height="1125" loading="lazy"
+             alt="The founder of 106 Events in a beaded emerald gown, dressed for a wedding">
+        <figcaption>Founder, 106 Events</figcaption>
+      </figure>
+      <div class="lp-founder-body">
+        <p class="lp-eyebrow">The planner behind it</p>
+        <blockquote class="lp-founder-quote">The list is the event. Everything
+        else — the RSVPs, the reminders, the door — hangs off getting one list
+        right.</blockquote>
+        <p>
+          106 Events is run by a planner, not a software company. It was built
+          between real weddings, for the parts of the job that spreadsheets and
+          group chats kept dropping — and it only grows a feature when a real
+          event needed it.
+        </p>
+      </div>
+    </div>
+  </section>
 
   <section class="lp-ask" id="request">
     <div class="lp-ask-grid">
