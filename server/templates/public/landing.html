@@ -101,6 +101,7 @@
 }
 .lp-brand { display: block; line-height: 0; }
 .lp-brand img { height: 60px; width: auto; display: block; }
+.lp-nav-links { display: none; }
 .lp-cta-sm { padding: 9px 18px; font-size: 14px; }
 
 /* --- hero ---------------------------------------------------------------- */
@@ -170,7 +171,8 @@
 .lp-hero-photo img {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  height: auto;          /* override the height attribute so aspect-ratio wins */
+  aspect-ratio: 3 / 2;
   object-fit: cover;
 }
 .lp-photo-cap {
@@ -252,7 +254,8 @@
 .lp-day img {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  height: auto;
+  aspect-ratio: 3 / 2;
   object-fit: cover;
   transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
@@ -764,6 +767,14 @@
   .lp-stage::before { left: -34px; }
   .lp-stats { grid-template-columns: repeat(4, 1fr); }
   .lp-days-grid { grid-template-columns: repeat(3, 1fr); }
+  .lp-nav-links { display: flex; gap: 26px; }
+  .lp-nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 15px;
+    transition: color 0.2s;
+  }
+  .lp-nav-links a:hover { color: var(--text); }
 }
 @media (min-width: 940px) {
   .lp-hero { padding-block: 64px 40px; }
@@ -806,6 +817,9 @@
       <img src="{{ meta.home_url }}/static/img/logo-v1.webp" width="512" height="399"
            alt="106 Events">
     </a>
+    <div class="lp-nav-links">
+      <a href="#services">Services</a>
+    </div>
     <a class="lp-cta lp-cta-sm lp-metal" href="#request">Work with us</a>
   </nav>
 </div>
@@ -828,8 +842,8 @@
     </div>
 
     <figure class="lp-hero-photo">
-      <img src="{{ meta.home_url }}/static/img/hero-v2.webp"
-           width="1400" height="1750" fetchpriority="high"
+      <img src="{{ meta.home_url }}/static/img/hero-v3.webp"
+           width="1600" height="1067" fetchpriority="high"
            alt="A couple in orange and white traditional attire, photographed against deep green at their engagement">
       <figcaption class="lp-photo-cap">
         <b>The traditional engagement</b>
@@ -849,7 +863,7 @@
 </header>
 
 <main class="lp">
-  <section class="lp-days">
+  <section class="lp-days" id="services">
     <div class="lp-days-head">
       <h2>Whatever you're celebrating</h2>
       <p>
@@ -861,7 +875,7 @@
     <div class="lp-days-grid">
       <figure class="lp-day">
         <img src="{{ meta.home_url }}/static/img/weddings-v1.webp"
-             width="760" height="950" loading="lazy"
+             width="1200" height="800" loading="lazy"
              alt="A bride in layered red beads and veil at a traditional engagement">
         <figcaption>
           <p class="lp-day-label">Weddings</p>
@@ -870,7 +884,7 @@
       </figure>
       <figure class="lp-day">
         <img src="{{ meta.home_url }}/static/img/corporate-v1.webp"
-             width="760" height="950" loading="lazy"
+             width="1200" height="800" loading="lazy"
              alt="A speaker on stage before an audience holding up phone lights">
         <figcaption>
           <p class="lp-day-label">Corporate</p>
@@ -879,7 +893,7 @@
       </figure>
       <figure class="lp-day">
         <img src="{{ meta.home_url }}/static/img/social-v1.webp"
-             width="760" height="950" loading="lazy"
+             width="1200" height="800" loading="lazy"
              alt="A hall at night, flowers and candlelight over the head table">
         <figcaption>
           <p class="lp-day-label">Social &amp; special</p>
