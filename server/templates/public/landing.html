@@ -8,23 +8,80 @@
 :root {
   /* The dark side of gold. Gold that is only ever one flat tone reads as
      yellow; what makes it metal is having a shadow to catch. */
-  --gold-deep: #8a6a2f;
-  --gold-shadow: rgba(138, 106, 47, 0.25);
+  --gold-deep: #a2761f;
+  --gold-shadow: rgba(162, 118, 31, 0.35);
 }
 
 /* One gradient, reused wherever a surface should look struck rather than
    filled. The stops are deliberately uneven — an even ramp looks like a
-   gradient, an uneven one looks like light moving across a curve. */
+   gradient, an uneven one looks like light moving across a curve. The hot
+   white-gold stop is what the sheen animation drags across the surface. */
 .lp-metal {
+  position: relative;
+  overflow: hidden;
   background-image: linear-gradient(
     118deg,
     var(--gold-deep) 0%,
-    var(--gold) 22%,
-    var(--gold-bright) 40%,
-    var(--gold) 56%,
+    var(--gold) 20%,
+    var(--gold-bright) 36%,
+    #fff3c4 44%,
+    var(--gold-bright) 52%,
+    var(--gold) 66%,
     var(--gold-deep) 100%
   );
+  background-size: 220% 100%;
 }
+/* Glitter: a handful of pinprick highlights that catch and release. They live
+   on the metal, not the page — jewellery, not confetti. */
+.lp-metal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 1.5px at 22% 32%, #fff 0 1.5px, transparent 2.6px),
+    radial-gradient(circle 1px   at 67% 62%, #fffbe8 0 1px, transparent 2px),
+    radial-gradient(circle 1.3px at 85% 26%, #fff 0 1.3px, transparent 2.4px),
+    radial-gradient(circle 1px   at 41% 74%, #fff6d8 0 1px, transparent 2px),
+    radial-gradient(circle 0.8px at 54% 22%, #fff 0 0.8px, transparent 1.8px);
+  opacity: 0.35;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lp-metal { animation: lp-sheen 5.5s ease-in-out infinite alternate; }
+  .lp-metal::after { animation: lp-twinkle 3.4s ease-in-out infinite; }
+}
+@keyframes lp-sheen {
+  from { background-position: 0% 0; }
+  to   { background-position: 100% 0; }
+}
+@keyframes lp-twinkle {
+  0%, 100% { opacity: 0.1; }
+  32%      { opacity: 0.9; }
+  48%      { opacity: 0.3; }
+  64%      { opacity: 0.8; }
+}
+
+/* Gold type gets the same struck surface, clipped to the letterforms. */
+.lp-gilt {
+  background-image: linear-gradient(
+    100deg,
+    var(--gold-deep),
+    var(--gold) 30%,
+    #ffeaa4 50%,
+    var(--gold) 70%,
+    var(--gold-deep)
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lp-gilt { animation: lp-sheen 6s ease-in-out infinite alternate; }
+}
+/* Outrank the flat-gold color rules below (.lp-h1 span, .lp-stat b), which
+   would otherwise paint over the clipped gradient. */
+.lp-h1 span.lp-gilt, .lp-stat b.lp-gilt { color: transparent; }
 
 .lp { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 
@@ -44,18 +101,6 @@
 }
 .lp-brand { display: block; line-height: 0; }
 .lp-brand img { height: 60px; width: auto; display: block; }
-.lp-nav-links { display: none; }
-.lp-nav-actions { display: flex; align-items: center; gap: 12px; }
-.lp-signin {
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 15px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--hairline);
-  transition: color 0.2s, border-color 0.2s;
-}
-.lp-signin:hover { color: var(--text); border-color: rgba(240, 207, 138, 0.35); }
 .lp-cta-sm { padding: 9px 18px; font-size: 14px; }
 
 /* --- hero ---------------------------------------------------------------- */
@@ -489,6 +534,139 @@
 }
 .lp-faq details p b { color: var(--text); font-weight: 500; }
 
+/* --- the call card -------------------------------------------------------- */
+/* Sandra's card, drawn rather than photographed: a black card that floats and
+   turns in the light, chip and all. It is a real link — tapping it dials. */
+
+.lp-callcard-wrap { margin: 32px 0 0; perspective: 900px; max-width: 360px; }
+.lp-callcard {
+  position: relative;
+  display: block;
+  aspect-ratio: 8 / 5;
+  border-radius: 18px;
+  padding: 8.5% 9%;
+  text-decoration: none;
+  background:
+    radial-gradient(120% 160% at 18% 0%, #201c15 0%, #14110d 42%, #080706 100%);
+  border: 1px solid rgba(255, 214, 120, 0.22);
+  box-shadow:
+    0 30px 60px -30px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(255, 240, 205, 0.08) inset;
+  transform-style: preserve-3d;
+  transform: rotateX(6deg) rotateY(-10deg);
+}
+/* The rest of the stack, peeking out underneath. */
+.lp-callcard::before, .lp-callcard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: #0b0a08;
+  border: 1px solid rgba(255, 214, 120, 0.1);
+  transform: translateZ(-18px) translate(7px, 9px);
+  z-index: -1;
+}
+.lp-callcard::after { transform: translateZ(-36px) translate(14px, 18px); opacity: 0.7; }
+/* Light moving across the face. */
+.lp-cc-gloss {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.lp-cc-gloss::before {
+  content: "";
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: -70%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 240, 200, 0.13), transparent);
+  transform: rotate(8deg);
+}
+.lp-chip {
+  display: block;
+  width: 15%;
+  aspect-ratio: 4 / 3;
+  border-radius: 5px;
+  background:
+    linear-gradient(transparent 44%, rgba(60, 42, 8, 0.65) 44% 56%, transparent 56%),
+    linear-gradient(90deg, transparent 30%, rgba(60, 42, 8, 0.65) 30% 34%,
+      transparent 34% 64%, rgba(60, 42, 8, 0.65) 64% 68%, transparent 68%),
+    linear-gradient(118deg, var(--gold-deep), var(--gold) 40%, var(--gold-bright) 55%, var(--gold-deep));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.lp-cc-brand {
+  position: absolute;
+  top: 10%;
+  right: 9%;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(15px, 1.8vw, 18px);
+}
+.lp-cc-brand b { color: var(--gold); font-weight: 600; }
+.lp-cc-brand span { color: var(--text); }
+.lp-cc-number {
+  display: block;
+  margin: 11% 0 0;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: clamp(15px, 2vw, 19px);
+  letter-spacing: 0.1em;
+  color: #ece7dd;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+.lp-cc-name {
+  position: absolute;
+  left: 9%;
+  bottom: 11%;
+  font-size: clamp(11px, 1.4vw, 13px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.lp-cc-name em {
+  display: block;
+  margin: 4px 0 0;
+  font-style: normal;
+  letter-spacing: 0.12em;
+  font-size: 0.82em;
+  color: var(--gold);
+}
+/* Two gold coins where a bank card keeps its marks. Ours, not anyone's. */
+.lp-cc-marks {
+  position: absolute;
+  right: 9%;
+  bottom: 10%;
+  display: flex;
+}
+.lp-cc-marks i {
+  width: clamp(24px, 3.4vw, 34px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-deep));
+  opacity: 0.85;
+}
+.lp-cc-marks i + i {
+  margin-left: -38%;
+  background: radial-gradient(circle at 65% 30%, rgba(255, 221, 122, 0.8), rgba(162, 118, 31, 0.55));
+  mix-blend-mode: screen;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lp-callcard { animation: lp-card-turn 9s ease-in-out infinite alternate; }
+  .lp-cc-gloss::before { animation: lp-card-gloss 4.5s ease-in-out infinite; }
+}
+@keyframes lp-card-turn {
+  from { transform: rotateX(9deg) rotateY(-14deg) translateY(0); }
+  50%  { transform: rotateX(4deg) rotateY(0deg) translateY(-7px); }
+  to   { transform: rotateX(7deg) rotateY(13deg) translateY(0); }
+}
+@keyframes lp-card-gloss {
+  0%, 18% { left: -70%; }
+  60%, 100% { left: 130%; }
+}
+
 /* --- request access ------------------------------------------------------ */
 
 .lp-ask { margin: 104px 0 0; }
@@ -586,14 +764,6 @@
   .lp-stage::before { left: -34px; }
   .lp-stats { grid-template-columns: repeat(4, 1fr); }
   .lp-days-grid { grid-template-columns: repeat(3, 1fr); }
-  .lp-nav-links { display: flex; gap: 26px; }
-  .lp-nav-links a {
-    color: var(--muted);
-    text-decoration: none;
-    font-size: 15px;
-    transition: color 0.2s;
-  }
-  .lp-nav-links a:hover { color: var(--text); }
 }
 @media (min-width: 940px) {
   .lp-hero { padding-block: 64px 40px; }
@@ -636,14 +806,7 @@
       <img src="{{ meta.home_url }}/static/img/logo-v1.webp" width="512" height="399"
            alt="106 Events">
     </a>
-    <div class="lp-nav-links">
-      <a href="#how">What it does</a>
-      <a href="#faq">Questions</a>
-    </div>
-    <div class="lp-nav-actions">
-      <a class="lp-signin" href="/login">Sign in</a>
-      <a class="lp-cta lp-cta-sm lp-metal" href="#request">Work with us</a>
-    </div>
+    <a class="lp-cta lp-cta-sm lp-metal" href="#request">Work with us</a>
   </nav>
 </div>
 
@@ -653,22 +816,21 @@
   <div class="lp-hero-grid">
     <div>
       <p class="lp-eyebrow">Weddings · Corporate · Social</p>
-      <h1 class="lp-h1">One guest list.<br><span>Every kind of event.</span></h1>
+      <h1 class="lp-h1">One guest list.<br><span class="lp-gilt">Every kind of event.</span></h1>
       <p class="lp-lede">
         A three-part wedding, a product launch, a burial, a 60th — every part of
-        your event on one list that keeps up. Guests reply on WhatsApp. Everyone
-        walks in free with their own code.
+        your event on one list that keeps up. Guests reply on WhatsApp and walk
+        in with their own code.
       </p>
       <div class="lp-cta-row">
         <a class="lp-cta lp-metal" href="#request">Work with us</a>
-        <span class="lp-cta-note">Invite-only while we're small.</span>
       </div>
     </div>
 
     <figure class="lp-hero-photo">
-      <img src="{{ meta.home_url }}/static/img/hero-owambe-v1.webp"
-           width="1100" height="1375" fetchpriority="high"
-           alt="A couple in matching purple aso-oke on a green velvet seat, under a floral arch at their traditional engagement">
+      <img src="{{ meta.home_url }}/static/img/hero-v2.webp"
+           width="1400" height="1750" fetchpriority="high"
+           alt="A couple in orange and white traditional attire, photographed against deep green at their engagement">
       <figcaption class="lp-photo-cap">
         <b>The traditional engagement</b>
         <span>One part of one client's three-part weekend</span>
@@ -679,10 +841,10 @@
   <!-- Not client counts: we're new and won't pretend otherwise. Each figure
        is a promise the software keeps, and the thread below explains how. -->
   <div class="lp-stats">
-    <div class="lp-stat"><b>₦0</b><span>what a guest pays at the door — every event is free to attend</span></div>
-    <div class="lp-stat"><b>1 link</b><span>answers every part they're invited to, no app, no account</span></div>
-    <div class="lp-stat"><b>8 characters</b><span>the code staff read aloud when a phone is dead</span></div>
-    <div class="lp-stat"><b>9pm</b><span>when reminders stop — where the event is, not the server</span></div>
+    <div class="lp-stat"><b class="lp-gilt">1 QR</b><span>per head at the door — every guest checked in by code, plus-ones included</span></div>
+    <div class="lp-stat"><b class="lp-gilt">1 link</b><span>answers every part they're invited to, no app, no account</span></div>
+    <div class="lp-stat"><b class="lp-gilt">8 characters</b><span>the code staff read aloud when a phone is dead</span></div>
+    <div class="lp-stat"><b class="lp-gilt">9pm</b><span>when reminders stop — where the event is, not the server</span></div>
   </div>
 </header>
 
@@ -819,7 +981,7 @@
     <section class="lp-stage">
       <div class="lp-stage-head">
         <p class="lp-stage-label">At the door</p>
-        <h2>Everyone gets in free. Everyone gets counted.</h2>
+        <h2>Every guest checked by code. Everyone counted.</h2>
       </div>
       <div class="lp-stage-body">
         <p>
@@ -883,14 +1045,6 @@
   <section class="lp-faq" id="faq" aria-labelledby="lp-faq-h">
     <h2 id="lp-faq-h">Questions people ask</h2>
     <details>
-      <summary>What does it cost?</summary>
-      <p>
-        Nothing while we're in early access, and <b>guests never pay</b> —
-        every event on 106 is free to attend. When paid plans arrive they'll
-        be for organizers, and everyone already inside keeps what they have.
-      </p>
-    </details>
-    <details>
       <summary>Do my guests need to install anything?</summary>
       <p>
         No. Guests get a link that opens in their browser, or they reply to
@@ -899,25 +1053,35 @@
       </p>
     </details>
     <details>
-      <summary>What happens if the venue's internet dies?</summary>
+      <summary>How do guests get in on the day?</summary>
       <p>
-        The door keeps working. The scanner keeps a copy of the list on the
-        phone, judges each code locally, and <b>syncs everything back</b> when
-        the signal returns — with the original scan times.
+        Every person carries their own QR code, plus-ones included. Staff scan
+        it at the door — or read out its eight characters when a phone is
+        dead — and <b>the count keeps working even if the venue's internet
+        doesn't</b>.
       </p>
     </details>
     <details>
-      <summary>Is it only for weddings?</summary>
+      <summary>What about our vendors?</summary>
       <p>
-        No — weddings are just the hardest case. Anything with a guest list
-        runs the same way: conferences with sessions, launches, burials,
-        birthdays. <b>If it has parts and a door, it fits.</b>
+        Every event carries its own vendor sheet — caterer, decorator, DJ,
+        aso-ebi — with <b>the price agreed, what's been paid, and what's
+        still owed</b>, in naira to the kobo. Nothing lives in someone's
+        head or a chat thread.
       </p>
     </details>
     <details>
-      <summary>How do I get an account?</summary>
+      <summary>What does it cost?</summary>
       <p>
-        Ask below. We're invite-only while we're small — we set each planner
+        Every event is different, so we quote each one. Tell us what you're
+        planning through the form below and <b>we'll come back with exact
+        costs</b> before anything is agreed.
+      </p>
+    </details>
+    <details>
+      <summary>How do we start?</summary>
+      <p>
+        Fill in the form below with what you're planning. We set every client
         up personally and <b>write back to every request</b>.
       </p>
     </details>
@@ -928,9 +1092,21 @@
     <div class="lp-ask-head">
       <h2>Work with us</h2>
       <p>
-        We're letting planners in a few at a time so we can set each one up
-        properly. Tell us what you're planning and we'll write back.
+        Tell us what you're planning and we'll write back with how we'd run
+        it — and what it costs. Every client is set up personally.
       </p>
+
+      <div class="lp-callcard-wrap">
+        <a class="lp-callcard" href="tel:+2348066882563"
+           aria-label="Call 106 Events — Sandra Kelvin, +234 806 688 2563">
+          <span class="lp-chip" aria-hidden="true"></span>
+          <span class="lp-cc-brand" aria-hidden="true"><b>106</b> <span>Events</span></span>
+          <span class="lp-cc-number" aria-hidden="true">+234 806 688 2563</span>
+          <span class="lp-cc-name" aria-hidden="true">Sandra Kelvin<em>Executive Director</em></span>
+          <span class="lp-cc-marks" aria-hidden="true"><i></i><i></i></span>
+          <span class="lp-cc-gloss" aria-hidden="true"></span>
+        </a>
+      </div>
     </div>
 
     <div>
@@ -957,10 +1133,17 @@
         </div>
       </div>
 
-      <div class="lp-field">
-        <label for="lp-phone">Phone <span aria-hidden="true">·</span> optional</label>
-        <input id="lp-phone" name="phone" type="tel" value="{{ form.phone }}"
-               autocomplete="tel" placeholder="0806 688 2563">
+      <div class="lp-pair">
+        <div class="lp-field">
+          <label for="lp-phone">Phone <span aria-hidden="true">·</span> optional</label>
+          <input id="lp-phone" name="phone" type="tel" value="{{ form.phone }}"
+                 autocomplete="tel" placeholder="0806 688 2563">
+        </div>
+        <div class="lp-field">
+          <label for="lp-budget">Budget <span aria-hidden="true">·</span> optional</label>
+          <input id="lp-budget" name="budget" value="{{ form.budget }}" maxlength="200"
+                 placeholder="₦3m – ₦5m, or “not sure yet”">
+        </div>
       </div>
 
       <div class="lp-field">
@@ -974,7 +1157,7 @@
         <input id="lp-website" name="website" tabindex="-1" autocomplete="off">
       </div>
 
-      <button type="submit" class="lp-submit lp-metal">Send request</button>
+      <button type="submit" class="lp-submit lp-metal">Send message</button>
     </form>
     </div>
     </div>
@@ -985,6 +1168,7 @@
   <div class="lp-foot">
     <span class="wordmark"><b>106</b> Events</span>
     <span>Made in Lagos for events that run all weekend.</span>
+    <a href="/login">Staff sign in</a>
   </div>
 </div>
 {% endblock %}

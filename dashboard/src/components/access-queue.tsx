@@ -115,6 +115,11 @@ export function AccessQueue({ isAdmin }: { isAdmin: boolean }) {
                   {request.about}
                 </p>
               )}
+              {request.budget && (
+                <p className="text-muted-foreground mt-2 text-sm">
+                  Budget: <span className="text-foreground">{request.budget}</span>
+                </p>
+              )}
             </motion.div>
           ))}
         </AnimatePresence>

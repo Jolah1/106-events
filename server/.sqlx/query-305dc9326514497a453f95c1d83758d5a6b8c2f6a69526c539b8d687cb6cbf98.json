@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, email, phone, about, created_at, handled_at\n         FROM access_requests\n         WHERE handled_at IS NULL\n         ORDER BY created_at DESC",
+  "query": "UPDATE access_requests SET handled_at = now(), handled_by = $2\n         WHERE id = $1\n         RETURNING id, name, email, phone, about, budget, created_at, handled_at",
   "describe": {
     "columns": [
       {
@@ -60,6 +60,17 @@
       },
       {
         "ordinal": 5,
+        "name": "budget",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "access_requests",
+            "name": "budget"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -70,7 +81,7 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "handled_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -82,7 +93,10 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
     },
     "nullable": [
       false,
@@ -91,8 +105,9 @@
       true,
       false,
       false,
+      false,
       true
     ]
   },
-  "hash": "71004a8f4d24b69363f0c5716c65407645549b6d8958caf8141477b4a0724a79"
+  "hash": "305dc9326514497a453f95c1d83758d5a6b8c2f6a69526c539b8d687cb6cbf98"
 }

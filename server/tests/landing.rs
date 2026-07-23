@@ -58,15 +58,16 @@ async fn asking_for_an_account_queues_the_request(pool: PgPool) {
     let (status, _) = post_form(
         &app,
         "name=Bimpe+Adewale&email=Bimpe%40Planner.NG&phone=0806+688+2563\
-         &about=Wedding+in+November",
+         &about=Wedding+in+November&budget=%E2%82%A63m+-+%E2%82%A65m",
     )
     .await;
     assert_eq!(status, StatusCode::SEE_OTHER, "post/redirect/get");
 
-    let row = sqlx::query!("SELECT name, email, phone, about, handled_at FROM access_requests")
-        .fetch_one(&pool)
-        .await
-        .unwrap();
+    let row =
+        sqlx::query!("SELECT name, email, phone, about, budget, handled_at FROM access_requests")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
     assert_eq!(row.name, "Bimpe Adewale");
     assert_eq!(row.email, "bimpe@planner.ng", "stored lowercase");
     assert_eq!(
@@ -75,6 +76,7 @@ async fn asking_for_an_account_queues_the_request(pool: PgPool) {
         "normalized like a guest's, so nobody retypes it to call them"
     );
     assert_eq!(row.about, "Wedding in November");
+    assert_eq!(row.budget, "₦3m - ₦5m", "kept in their own words");
     assert!(row.handled_at.is_none(), "it starts open");
 
     // The page then says so, without needing any state beyond the URL.

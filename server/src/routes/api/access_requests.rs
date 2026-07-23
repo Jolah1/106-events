@@ -29,6 +29,7 @@ pub struct AccessRequest {
     pub email: String,
     pub phone: Option<String>,
     pub about: String,
+    pub budget: String,
     pub created_at: DateTime<Utc>,
     pub handled_at: Option<DateTime<Utc>>,
 }
@@ -40,7 +41,7 @@ async fn list(
     user.require_admin()?;
     let requests = sqlx::query_as!(
         AccessRequest,
-        "SELECT id, name, email, phone, about, created_at, handled_at
+        "SELECT id, name, email, phone, about, budget, created_at, handled_at
          FROM access_requests
          WHERE handled_at IS NULL
          ORDER BY created_at DESC",
@@ -60,7 +61,7 @@ async fn mark_handled(
         AccessRequest,
         "UPDATE access_requests SET handled_at = now(), handled_by = $2
          WHERE id = $1
-         RETURNING id, name, email, phone, about, created_at, handled_at",
+         RETURNING id, name, email, phone, about, budget, created_at, handled_at",
         id,
         user.id
     )
@@ -82,10 +83,12 @@ pub async fn record(
     email: &str,
     raw_phone: &str,
     about: &str,
+    budget: &str,
 ) -> Result<(), AppError> {
     let name = name.trim();
     let email = email.trim().to_lowercase();
     let about = about.trim();
+    let budget = budget.trim();
 
     if name.is_empty() {
         return Err(AppError::validation("tell us your name"));
@@ -103,6 +106,9 @@ pub async fn record(
     if about.chars().count() > 2000 {
         return Err(AppError::validation("that message is too long"));
     }
+    if budget.chars().count() > 200 {
+        return Err(AppError::validation("that budget is too long"));
+    }
 
     // The same E.164 normalization guests get, so a number here can be dialled
     // or messaged without anyone retyping it. An unparseable number is dropped
@@ -110,19 +116,21 @@ pub async fn record(
     let phone = phone::normalize(raw_phone);
 
     sqlx::query!(
-        "INSERT INTO access_requests (name, email, phone, about)
-         VALUES ($1, $2, $3, $4)
+        "INSERT INTO access_requests (name, email, phone, about, budget)
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (lower(email)) DO UPDATE
          SET name = excluded.name,
              phone = coalesce(excluded.phone, access_requests.phone),
              about = excluded.about,
+             budget = excluded.budget,
              created_at = now(),
              handled_at = NULL,
              handled_by = NULL",
         name,
         email,
         phone,
-        about
+        about,
+        budget
     )
     .execute(pool)
     .await?;

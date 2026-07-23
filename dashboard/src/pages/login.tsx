@@ -17,7 +17,6 @@ interface RequestLinkResponse {
 export function LoginPage() {
   const [email, setEmail] = useState("")
   const [staffCode, setStaffCode] = useState("")
-  const [showCode, setShowCode] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
@@ -87,7 +86,7 @@ export function LoginPage() {
             <div className="space-y-1">
               <h1 className="font-heading text-xl font-semibold">Sign in</h1>
               <p className="text-sm text-muted-foreground">
-                No passwords — we'll email you a one-time sign-in link.
+                No passwords — your email and the team's staff code get you in.
               </p>
             </div>
             <div className="space-y-2">
@@ -103,33 +102,28 @@ export function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            {showCode ? (
-              <div className="space-y-2">
-                <Label htmlFor="staff-code">Staff code</Label>
-                <Input
-                  id="staff-code"
-                  type="password"
-                  autoComplete="off"
-                  placeholder="The team passphrase"
-                  value={staffCode}
-                  onChange={(e) => setStaffCode(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Shows your sign-in link right here instead of emailing it.
-                </p>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="self-start text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-                onClick={() => setShowCode(true)}
-              >
-                Have a staff code?
-              </button>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="staff-code">Staff code</Label>
+              <Input
+                id="staff-code"
+                type="password"
+                autoComplete="off"
+                placeholder="The team passphrase"
+                value={staffCode}
+                onChange={(e) => setStaffCode(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Don't have it? Ask whoever runs your workspace — or leave it
+                empty and we'll email you a link once email is switched on.
+              </p>
+            </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" disabled={requestLink.isPending}>
-              {requestLink.isPending ? "Sending…" : showCode && staffCode ? "Sign me in" : "Email me a sign-in link"}
+              {requestLink.isPending
+                ? "Signing in…"
+                : staffCode
+                  ? "Sign me in"
+                  : "Email me a sign-in link"}
             </Button>
           </form>
         )}
