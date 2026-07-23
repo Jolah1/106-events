@@ -34,6 +34,12 @@ pub struct Config {
     /// omission. So it is off unless someone deliberately turns it on, and it
     /// only ever applies when there's no mailer to send through anyway.
     pub allow_dev_login: bool,
+    /// A shared passphrase that unlocks the same in-response sign-in link for
+    /// one request, without opening it to everyone the way ALLOW_DEV_LOGIN
+    /// does. For a deployed site that has no email yet: staff type this on the
+    /// login page and get their link; anyone without it sees the normal flow.
+    /// Like the dev link itself, it only ever applies when there's no mailer.
+    pub staff_access_code: Option<String>,
 }
 
 fn var(name: &str) -> Option<String> {
@@ -92,6 +98,7 @@ impl Config {
             dashboard_dist: var("DASHBOARD_DIST").map(PathBuf::from),
             allow_dev_login: var("ALLOW_DEV_LOGIN")
                 .is_some_and(|v| v == "true" || v == "1"),
+            staff_access_code: var("STAFF_ACCESS_CODE"),
         })
     }
 }

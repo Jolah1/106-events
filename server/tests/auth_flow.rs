@@ -258,3 +258,96 @@ async fn a_deploy_without_smtp_does_not_hand_out_sign_in_links(pool: PgPool) {
         "the link must reach them by email or not at all: {body}"
     );
 }
+
+#[sqlx::test]
+async fn the_staff_code_unlocks_a_sign_in_link_without_email(pool: PgPool) {
+    // The pre-launch shape: deployed, no SMTP yet, dev login off. Staff who
+    // type the shared passphrase get their link in the response; that's the
+    // whole point of the code.
+    let mut config = common::test_config();
+    config.allow_dev_login = false;
+    config.staff_access_code = Some("gold-thread-lagos".into());
+    let app = common::app_with_config(pool.clone(), config);
+    seed_user(&pool, "admin@example.com").await;
+
+    let (status, body, _) = send(
+        &app,
+        Method::POST,
+        "/api/auth/request-link",
+        Some(json!({ "email": "admin@example.com", "staffCode": "gold-thread-lagos" })),
+        None,
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        body["devLink"].as_str().is_some_and(|l| l.contains("/auth/verify?token=")),
+        "the right code should surface the link: {body}"
+    );
+}
+
+#[sqlx::test]
+async fn a_wrong_or_missing_staff_code_changes_nothing(pool: PgPool) {
+    let mut config = common::test_config();
+    config.allow_dev_login = false;
+    config.staff_access_code = Some("gold-thread-lagos".into());
+    let app = common::app_with_config(pool.clone(), config);
+    seed_user(&pool, "admin@example.com").await;
+
+    for body in [
+        json!({ "email": "admin@example.com", "staffCode": "guess" }),
+        json!({ "email": "admin@example.com", "staffCode": "" }),
+        json!({ "email": "admin@example.com" }),
+    ] {
+        let (status, response, _) =
+            send(&app, Method::POST, "/api/auth/request-link", Some(body), None).await;
+        // Indistinguishable from the no-code flow: same 200, same "sent",
+        // no link. A guesser learns nothing except that nothing happened.
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(response["sent"], true);
+        assert!(response["devLink"].is_null(), "{response}");
+    }
+}
+
+#[sqlx::test]
+async fn the_staff_code_is_useless_to_a_stranger(pool: PgPool) {
+    // Even with the passphrase, an email that isn't on the team gets no link:
+    // the code bypasses the missing mailer, never the invitation.
+    let mut config = common::test_config();
+    config.allow_dev_login = false;
+    config.staff_access_code = Some("gold-thread-lagos".into());
+    let app = common::app_with_config(pool.clone(), config);
+
+    let (status, body, _) = send(
+        &app,
+        Method::POST,
+        "/api/auth/request-link",
+        Some(json!({ "email": "stranger@example.com", "staffCode": "gold-thread-lagos" })),
+        None,
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert!(body["devLink"].is_null(), "{body}");
+}
+
+#[sqlx::test]
+async fn no_configured_staff_code_means_no_code_works(pool: PgPool) {
+    // Nothing set server-side: whatever a caller types, including an empty
+    // string, must not match. The gate fails closed.
+    let mut config = common::test_config();
+    config.allow_dev_login = false;
+    config.staff_access_code = None;
+    let app = common::app_with_config(pool.clone(), config);
+    seed_user(&pool, "admin@example.com").await;
+
+    let (_, body, _) = send(
+        &app,
+        Method::POST,
+        "/api/auth/request-link",
+        Some(json!({ "email": "admin@example.com", "staffCode": "" })),
+        None,
+    )
+    .await;
+    assert!(body["devLink"].is_null(), "{body}");
+}

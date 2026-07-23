@@ -334,6 +334,7 @@ safe.
 | `COOKIE_SECURE` | yes in prod | Set in the Dockerfile already. |
 | `WEBHOOK_SECRET` | yes in prod | Required on the inbound WhatsApp/SMS webhook. |
 | `ALLOW_DEV_LOGIN` | never in prod | Returns the sign-in link in the response. Development only. |
+| `STAFF_ACCESS_CODE` | until SMTP exists | A long passphrase; staff type it on the login page to get their sign-in link inline. Only applies while `SMTP_URL` is unset. Remove once email works. |
 
 ### Railway
 

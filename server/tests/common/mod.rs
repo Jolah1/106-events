@@ -38,6 +38,7 @@ pub fn test_config() -> Config {
         webhook_secret: None,
         dashboard_dist: None,
         allow_dev_login: true,
+        staff_access_code: None,
     }
 }
 

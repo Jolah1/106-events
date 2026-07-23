@@ -16,12 +16,14 @@ interface RequestLinkResponse {
 
 export function LoginPage() {
   const [email, setEmail] = useState("")
+  const [staffCode, setStaffCode] = useState("")
+  const [showCode, setShowCode] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
   const requestLink = useMutation({
-    mutationFn: (email: string) =>
-      api.post<RequestLinkResponse>("/api/auth/request-link", { email }),
+    mutationFn: (input: { email: string; staffCode: string }) =>
+      api.post<RequestLinkResponse>("/api/auth/request-link", input),
     onError: (err) =>
       setError(err instanceof ApiError ? err.message : "Couldn't reach the server. Try again."),
   })
@@ -29,7 +31,7 @@ export function LoginPage() {
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
     setError(null)
-    requestLink.mutate(email)
+    requestLink.mutate({ email, staffCode })
   }
 
   const sent = requestLink.data
@@ -42,23 +44,32 @@ export function LoginPage() {
         {sent ? (
           <div className="flex flex-col items-center gap-3 p-6 text-center">
             <MailCheck className="size-8 text-gold" aria-hidden />
-            <h1 className="font-heading text-xl font-semibold">Check your email</h1>
-            <p className="text-sm text-muted-foreground">
-              We sent a sign-in link to <span className="text-foreground">{sent ? email.trim().toLowerCase() : ""}</span>.
-              It expires in 15 minutes.
-            </p>
-            {sent.devLink && (
-              <Button
-                variant="outline"
-                className="mt-2 w-full"
-                onClick={() => {
-                  const url = new URL(sent.devLink!)
-                  navigate(url.pathname + url.search)
-                }}
-              >
-                Open sign-in link (dev)
-                <ArrowRight data-slot="icon" />
-              </Button>
+            {sent.devLink ? (
+              <>
+                <h1 className="font-heading text-xl font-semibold">Your link is ready</h1>
+                <p className="text-sm text-muted-foreground">
+                  Signing in as <span className="text-foreground">{email.trim().toLowerCase()}</span>.
+                  The link expires in 15 minutes.
+                </p>
+                <Button
+                  className="mt-2 w-full"
+                  onClick={() => {
+                    const url = new URL(sent.devLink!)
+                    navigate(url.pathname + url.search)
+                  }}
+                >
+                  Continue to dashboard
+                  <ArrowRight data-slot="icon" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <h1 className="font-heading text-xl font-semibold">Check your email</h1>
+                <p className="text-sm text-muted-foreground">
+                  We sent a sign-in link to <span className="text-foreground">{email.trim().toLowerCase()}</span>.
+                  It expires in 15 minutes.
+                </p>
+              </>
             )}
             <button
               className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
@@ -88,9 +99,33 @@ export function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
+            {showCode ? (
+              <div className="space-y-2">
+                <Label htmlFor="staff-code">Staff code</Label>
+                <Input
+                  id="staff-code"
+                  type="password"
+                  autoComplete="off"
+                  placeholder="The team passphrase"
+                  value={staffCode}
+                  onChange={(e) => setStaffCode(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Shows your sign-in link right here instead of emailing it.
+                </p>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="self-start text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                onClick={() => setShowCode(true)}
+              >
+                Have a staff code?
+              </button>
+            )}
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" disabled={requestLink.isPending}>
-              {requestLink.isPending ? "Sending…" : "Email me a sign-in link"}
+              {requestLink.isPending ? "Sending…" : showCode && staffCode ? "Sign me in" : "Email me a sign-in link"}
             </Button>
           </form>
         )}
