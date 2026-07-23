@@ -534,6 +534,139 @@
 }
 .lp-faq details p b { color: var(--text); font-weight: 500; }
 
+/* --- the call card -------------------------------------------------------- */
+/* Sandra's card, drawn rather than photographed: a black card that floats and
+   turns in the light, chip and all. It is a real link — tapping it dials. */
+
+.lp-callcard-wrap { margin: 32px 0 0; perspective: 900px; max-width: 360px; }
+.lp-callcard {
+  position: relative;
+  display: block;
+  aspect-ratio: 8 / 5;
+  border-radius: 18px;
+  padding: 8.5% 9%;
+  text-decoration: none;
+  background:
+    radial-gradient(120% 160% at 18% 0%, #201c15 0%, #14110d 42%, #080706 100%);
+  border: 1px solid rgba(255, 214, 120, 0.22);
+  box-shadow:
+    0 30px 60px -30px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(255, 240, 205, 0.08) inset;
+  transform-style: preserve-3d;
+  transform: rotateX(6deg) rotateY(-10deg);
+}
+/* The rest of the stack, peeking out underneath. */
+.lp-callcard::before, .lp-callcard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: #0b0a08;
+  border: 1px solid rgba(255, 214, 120, 0.1);
+  transform: translateZ(-18px) translate(7px, 9px);
+  z-index: -1;
+}
+.lp-callcard::after { transform: translateZ(-36px) translate(14px, 18px); opacity: 0.7; }
+/* Light moving across the face. */
+.lp-cc-gloss {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.lp-cc-gloss::before {
+  content: "";
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: -70%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 240, 200, 0.13), transparent);
+  transform: rotate(8deg);
+}
+.lp-chip {
+  display: block;
+  width: 15%;
+  aspect-ratio: 4 / 3;
+  border-radius: 5px;
+  background:
+    linear-gradient(transparent 44%, rgba(60, 42, 8, 0.65) 44% 56%, transparent 56%),
+    linear-gradient(90deg, transparent 30%, rgba(60, 42, 8, 0.65) 30% 34%,
+      transparent 34% 64%, rgba(60, 42, 8, 0.65) 64% 68%, transparent 68%),
+    linear-gradient(118deg, var(--gold-deep), var(--gold) 40%, var(--gold-bright) 55%, var(--gold-deep));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.lp-cc-brand {
+  position: absolute;
+  top: 10%;
+  right: 9%;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(15px, 1.8vw, 18px);
+}
+.lp-cc-brand b { color: var(--gold); font-weight: 600; }
+.lp-cc-brand span { color: var(--text); }
+.lp-cc-number {
+  display: block;
+  margin: 11% 0 0;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: clamp(15px, 2vw, 19px);
+  letter-spacing: 0.1em;
+  color: #ece7dd;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+.lp-cc-name {
+  position: absolute;
+  left: 9%;
+  bottom: 11%;
+  font-size: clamp(11px, 1.4vw, 13px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.lp-cc-name em {
+  display: block;
+  margin: 4px 0 0;
+  font-style: normal;
+  letter-spacing: 0.12em;
+  font-size: 0.82em;
+  color: var(--gold);
+}
+/* Two gold coins where a bank card keeps its marks. Ours, not anyone's. */
+.lp-cc-marks {
+  position: absolute;
+  right: 9%;
+  bottom: 10%;
+  display: flex;
+}
+.lp-cc-marks i {
+  width: clamp(24px, 3.4vw, 34px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-deep));
+  opacity: 0.85;
+}
+.lp-cc-marks i + i {
+  margin-left: -38%;
+  background: radial-gradient(circle at 65% 30%, rgba(255, 221, 122, 0.8), rgba(162, 118, 31, 0.55));
+  mix-blend-mode: screen;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lp-callcard { animation: lp-card-turn 9s ease-in-out infinite alternate; }
+  .lp-cc-gloss::before { animation: lp-card-gloss 4.5s ease-in-out infinite; }
+}
+@keyframes lp-card-turn {
+  from { transform: rotateX(9deg) rotateY(-14deg) translateY(0); }
+  50%  { transform: rotateX(4deg) rotateY(0deg) translateY(-7px); }
+  to   { transform: rotateX(7deg) rotateY(13deg) translateY(0); }
+}
+@keyframes lp-card-gloss {
+  0%, 18% { left: -70%; }
+  60%, 100% { left: 130%; }
+}
+
 /* --- request access ------------------------------------------------------ */
 
 .lp-ask { margin: 104px 0 0; }
@@ -962,6 +1095,18 @@
         Tell us what you're planning and we'll write back with how we'd run
         it — and what it costs. Every client is set up personally.
       </p>
+
+      <div class="lp-callcard-wrap">
+        <a class="lp-callcard" href="tel:+2348066882563"
+           aria-label="Call 106 Events — Sandra Kelvin, +234 806 688 2563">
+          <span class="lp-chip" aria-hidden="true"></span>
+          <span class="lp-cc-brand" aria-hidden="true"><b>106</b> <span>Events</span></span>
+          <span class="lp-cc-number" aria-hidden="true">+234 806 688 2563</span>
+          <span class="lp-cc-name" aria-hidden="true">Sandra Kelvin<em>Executive Director</em></span>
+          <span class="lp-cc-marks" aria-hidden="true"><i></i><i></i></span>
+          <span class="lp-cc-gloss" aria-hidden="true"></span>
+        </a>
+      </div>
     </div>
 
     <div>
