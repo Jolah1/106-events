@@ -450,6 +450,15 @@ overpayment, overpayments not becoming negative debts, a patch leaving
 hand-typed fields alone, per-event scoping, and the sheet going with a deleted
 event. `domain::money` unit-tests the kobo arithmetic and naira formatting.
 
+The rollup (`GET /api/events/{id}/stats`, the "At a glance" block on the event
+page) pins the arithmetic catering and chairs get ordered from: RSVP standings
+counted per part, a guest staying "still to answer" until every part they're
+invited to has an answer, the door count including recorded over-allowance
+admissions and offline syncs, and vendor debt clamped per vendor so an
+overpayment can't mask another supplier's balance. Everything is derived at
+read time from the rows the other endpoints own — nothing is stored, so the
+rollup can't drift from the lists it summarizes.
+
 ## Environment variables
 
 See `server/.env.example` for the full list: `DATABASE_URL`, `ADMIN_EMAILS`,
@@ -465,7 +474,7 @@ See `server/.env.example` for the full list: `DATABASE_URL`, `ADMIN_EMAILS`,
 - [x] Phase 5 — automated reminders to non-responders
 - [x] Per-event vendor sheet (cost/paid tracker, beyond the eight phases)
 - [x] Free QR check-in, offline-tolerant (replaces the old ticketing phase)
-- [ ] Organizer dashboard rollups
+- [x] Organizer dashboard rollups ("At a glance" on the event page)
 
 Ticketing was removed from the plan: every event is free to attend, and the
 guest list is the only thing that grants entry.

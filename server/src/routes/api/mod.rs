@@ -6,6 +6,7 @@ pub mod events;
 pub mod guests;
 pub mod reminders;
 pub mod rsvp_store;
+pub mod stats;
 pub mod team;
 pub mod vendors;
 pub mod webhooks;
@@ -23,6 +24,7 @@ pub fn router() -> Router<AppState> {
         .merge(events::router())
         .merge(guests::router())
         .merge(reminders::router())
+        .merge(stats::router())
         .merge(team::router())
         .merge(vendors::router())
         .merge(webhooks::router())

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE guest_invites SET rsvp_status = 'pending', party_size = 0,\n                responded_at = NULL, responded_via = NULL\n         WHERE sub_event_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8942c7ec75f6c4f81d0514e8f3ff024c4628cda9da274c5d972dd607ec9e948f"
+}
