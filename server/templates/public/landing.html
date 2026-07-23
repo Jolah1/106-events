@@ -101,18 +101,6 @@
 }
 .lp-brand { display: block; line-height: 0; }
 .lp-brand img { height: 60px; width: auto; display: block; }
-.lp-nav-links { display: none; }
-.lp-nav-actions { display: flex; align-items: center; gap: 12px; }
-.lp-signin {
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 15px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--hairline);
-  transition: color 0.2s, border-color 0.2s;
-}
-.lp-signin:hover { color: var(--text); border-color: rgba(240, 207, 138, 0.35); }
 .lp-cta-sm { padding: 9px 18px; font-size: 14px; }
 
 /* --- hero ---------------------------------------------------------------- */
@@ -643,14 +631,6 @@
   .lp-stage::before { left: -34px; }
   .lp-stats { grid-template-columns: repeat(4, 1fr); }
   .lp-days-grid { grid-template-columns: repeat(3, 1fr); }
-  .lp-nav-links { display: flex; gap: 26px; }
-  .lp-nav-links a {
-    color: var(--muted);
-    text-decoration: none;
-    font-size: 15px;
-    transition: color 0.2s;
-  }
-  .lp-nav-links a:hover { color: var(--text); }
 }
 @media (min-width: 940px) {
   .lp-hero { padding-block: 64px 40px; }
@@ -693,14 +673,7 @@
       <img src="{{ meta.home_url }}/static/img/logo-v1.webp" width="512" height="399"
            alt="106 Events">
     </a>
-    <div class="lp-nav-links">
-      <a href="#how">What it does</a>
-      <a href="#faq">Questions</a>
-    </div>
-    <div class="lp-nav-actions">
-      <a class="lp-signin" href="/login">Sign in</a>
-      <a class="lp-cta lp-cta-sm lp-metal" href="#request">Work with us</a>
-    </div>
+    <a class="lp-cta lp-cta-sm lp-metal" href="#request">Work with us</a>
   </nav>
 </div>
 
@@ -939,14 +912,6 @@
   <section class="lp-faq" id="faq" aria-labelledby="lp-faq-h">
     <h2 id="lp-faq-h">Questions people ask</h2>
     <details>
-      <summary>What does it cost?</summary>
-      <p>
-        Every event is different, so we quote each one. Tell us what you're
-        planning through the form below and <b>we'll come back with exact
-        costs</b> before anything is agreed.
-      </p>
-    </details>
-    <details>
       <summary>Do my guests need to install anything?</summary>
       <p>
         No. Guests get a link that opens in their browser, or they reply to
@@ -955,19 +920,29 @@
       </p>
     </details>
     <details>
-      <summary>What happens if the venue's internet dies?</summary>
+      <summary>How do guests get in on the day?</summary>
       <p>
-        The door keeps working. The scanner keeps a copy of the list on the
-        phone, judges each code locally, and <b>syncs everything back</b> when
-        the signal returns — with the original scan times.
+        Every person carries their own QR code, plus-ones included. Staff scan
+        it at the door — or read out its eight characters when a phone is
+        dead — and <b>the count keeps working even if the venue's internet
+        doesn't</b>.
       </p>
     </details>
     <details>
-      <summary>Is it only for weddings?</summary>
+      <summary>What about our vendors?</summary>
       <p>
-        No — weddings are just the hardest case. Anything with a guest list
-        runs the same way: conferences with sessions, launches, burials,
-        birthdays. <b>If it has parts and a door, it fits.</b>
+        Every event carries its own vendor sheet — caterer, decorator, DJ,
+        aso-ebi — with <b>the price agreed, what's been paid, and what's
+        still owed</b>, in naira to the kobo. Nothing lives in someone's
+        head or a chat thread.
+      </p>
+    </details>
+    <details>
+      <summary>What does it cost?</summary>
+      <p>
+        Every event is different, so we quote each one. Tell us what you're
+        planning through the form below and <b>we'll come back with exact
+        costs</b> before anything is agreed.
       </p>
     </details>
     <details>
@@ -1013,10 +988,17 @@
         </div>
       </div>
 
-      <div class="lp-field">
-        <label for="lp-phone">Phone <span aria-hidden="true">·</span> optional</label>
-        <input id="lp-phone" name="phone" type="tel" value="{{ form.phone }}"
-               autocomplete="tel" placeholder="0806 688 2563">
+      <div class="lp-pair">
+        <div class="lp-field">
+          <label for="lp-phone">Phone <span aria-hidden="true">·</span> optional</label>
+          <input id="lp-phone" name="phone" type="tel" value="{{ form.phone }}"
+                 autocomplete="tel" placeholder="0806 688 2563">
+        </div>
+        <div class="lp-field">
+          <label for="lp-budget">Budget <span aria-hidden="true">·</span> optional</label>
+          <input id="lp-budget" name="budget" value="{{ form.budget }}" maxlength="200"
+                 placeholder="₦3m – ₦5m, or “not sure yet”">
+        </div>
       </div>
 
       <div class="lp-field">
@@ -1030,7 +1012,7 @@
         <input id="lp-website" name="website" tabindex="-1" autocomplete="off">
       </div>
 
-      <button type="submit" class="lp-submit lp-metal">Send request</button>
+      <button type="submit" class="lp-submit lp-metal">Send message</button>
     </form>
     </div>
     </div>
@@ -1041,6 +1023,7 @@
   <div class="lp-foot">
     <span class="wordmark"><b>106</b> Events</span>
     <span>Made in Lagos for events that run all weekend.</span>
+    <a href="/login">Staff sign in</a>
   </div>
 </div>
 {% endblock %}

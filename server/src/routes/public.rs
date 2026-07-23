@@ -96,6 +96,8 @@ pub struct RequestForm {
     phone: String,
     #[serde(default)]
     about: String,
+    #[serde(default)]
+    budget: String,
     /// A field no human sees and no human fills. Bots fill every input they
     /// find, so anything here means the submission wasn't typed by a person.
     #[serde(default)]
@@ -161,6 +163,7 @@ async fn request_access(
         &form.email,
         &form.phone,
         &form.about,
+        &form.budget,
     )
     .await
     {

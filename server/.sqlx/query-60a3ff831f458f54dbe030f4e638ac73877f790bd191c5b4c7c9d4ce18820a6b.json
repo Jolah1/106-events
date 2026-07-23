@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT name, email, phone, about, handled_at FROM access_requests",
+  "query": "SELECT name, email, phone, about, budget, handled_at FROM access_requests",
   "describe": {
     "columns": [
       {
@@ -49,6 +49,17 @@
       },
       {
         "ordinal": 4,
+        "name": "budget",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "access_requests",
+            "name": "budget"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
         "name": "handled_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -67,8 +78,9 @@
       false,
       true,
       false,
+      false,
       true
     ]
   },
-  "hash": "447e40708d8930976eec7db92856dc81a77065dc71d8bc822b44d29b615d44bc"
+  "hash": "60a3ff831f458f54dbe030f4e638ac73877f790bd191c5b4c7c9d4ce18820a6b"
 }

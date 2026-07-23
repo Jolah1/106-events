@@ -299,6 +299,8 @@ export interface AccessRequest {
   phone: string | null
   /** What they said they're planning, in their own words. */
   about: string
+  /** What they expect to spend, in their own words ("₦3m", "not sure yet"). */
+  budget: string
   createdAt: string
   handledAt: string | null
 }
