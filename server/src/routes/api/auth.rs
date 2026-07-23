@@ -31,8 +31,12 @@ pub fn router() -> Router<AppState> {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct RequestLinkBody {
     email: String,
+    /// Optional staff passphrase; see `Config::staff_access_code`.
+    #[serde(default)]
+    staff_code: String,
 }
 
 /// Case-insensitive, trimmed. Full RFC-compliant validation is a losing game;
@@ -101,7 +105,17 @@ async fn request_link(
         // Returning a magic link to whoever requested it is account takeover;
         // it exists so the flow is usable without email infrastructure, and it
         // must never switch itself on because a deploy forgot to set SMTP_URL.
-        dev_link = (state.mailer.is_dev() && state.config.allow_dev_login).then_some(link);
+        //
+        // The staff code is the per-request version of the same switch: a
+        // correct passphrase unlocks the link for this one response. Hashes
+        // are compared rather than the strings themselves so a timing
+        // difference can't leak how much of a guess was right. A wrong code
+        // is indistinguishable from no code — the endpoint stays quiet.
+        let code_ok = state.config.staff_access_code.as_deref().is_some_and(|expected| {
+            tokens::hash_token(expected) == tokens::hash_token(body.staff_code.trim())
+        });
+        dev_link = (state.mailer.is_dev() && (state.config.allow_dev_login || code_ok))
+            .then_some(link);
     }
 
     Ok(Json(json!({ "sent": true, "devLink": dev_link })))
