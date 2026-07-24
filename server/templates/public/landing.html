@@ -83,6 +83,46 @@
    would otherwise paint over the clipped gradient. */
 .lp-h1 span.lp-gilt, .lp-stat b.lp-gilt { color: transparent; }
 
+/* --- the rotating event type --------------------------------------------- */
+/* One word slot on the headline that cycles through what we run: wedding,
+   gala, launch… An invisible sizer holds the box at the widest word so the
+   line never reflows as the words swap. No JavaScript — five stacked words,
+   each fading in on its turn. */
+.lp-rotator { position: relative; display: inline-block; vertical-align: bottom; }
+.lp-rot-sizer { visibility: hidden; }
+.lp-rot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  opacity: 0;
+  /* The words carry lp-rotword, which replaces lp-gilt's sheen sweep — so pin
+     the gradient with its bright highlight centred, or the frozen position 0%
+     leaves the word a muddy deep-gold. */
+  background-position: 50% 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* Fade in on cue AND keep the sheen sweeping — different properties, so both
+     run at once and the words glitter like the rest of the gold. */
+  .lp-rot { animation: lp-rotword 14s infinite, lp-sheen 6s ease-in-out infinite alternate; }
+  .lp-rot:nth-of-type(1) { animation-delay: 0s; }
+  .lp-rot:nth-of-type(2) { animation-delay: 2.8s; }
+  .lp-rot:nth-of-type(3) { animation-delay: 5.6s; }
+  .lp-rot:nth-of-type(4) { animation-delay: 8.4s; }
+  .lp-rot:nth-of-type(5) { animation-delay: 11.2s; }
+}
+/* No motion: the first word simply stays. */
+@media (prefers-reduced-motion: reduce) {
+  .lp-rot:first-of-type { opacity: 1; }
+}
+@keyframes lp-rotword {
+  0%   { opacity: 0; transform: translateY(0.14em); }
+  3.5% { opacity: 1; transform: none; }
+  16%  { opacity: 1; transform: none; }
+  20%  { opacity: 0; transform: translateY(-0.14em); }
+  100% { opacity: 0; transform: translateY(-0.14em); }
+}
+
 .lp { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 
 /* Anchor navigation should glide, not jump — unless motion is unwelcome. */
@@ -819,6 +859,7 @@
     </a>
     <div class="lp-nav-links">
       <a href="#services">Services</a>
+      <a href="#about">About</a>
     </div>
     <a class="lp-cta lp-cta-sm lp-metal" href="#request">Work with us</a>
   </nav>
@@ -830,7 +871,7 @@
   <div class="lp-hero-grid">
     <div>
       <p class="lp-eyebrow">Weddings · Corporate · Social</p>
-      <h1 class="lp-h1">One guest list.<br><span class="lp-gilt">Every kind of event.</span></h1>
+      <h1 class="lp-h1">One guest list for your<br><span class="lp-rotator" aria-label="wedding, gala, product launch, birthday, burial — every kind of event"><span class="lp-rot-sizer" aria-hidden="true">product launch</span><b class="lp-rot lp-gilt" aria-hidden="true">wedding</b><b class="lp-rot lp-gilt" aria-hidden="true">gala</b><b class="lp-rot lp-gilt" aria-hidden="true">product launch</b><b class="lp-rot lp-gilt" aria-hidden="true">birthday</b><b class="lp-rot lp-gilt" aria-hidden="true">burial</b></span></h1>
       <p class="lp-lede">
         A three-part wedding, a product launch, a burial, a 60th — every part of
         your event on one list that keeps up. Guests reply on WhatsApp and walk
@@ -1032,7 +1073,7 @@
     </section>
   </div>
 
-  <section class="lp-founder">
+  <section class="lp-founder" id="about">
     <div class="lp-founder-grid">
       <figure class="lp-founder-photo">
         <img src="{{ meta.home_url }}/static/img/founder-v1.webp"
