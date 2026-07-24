@@ -32,7 +32,7 @@ async fn the_landing_page_says_what_the_product_does(pool: PgPool) {
     let (status, body, headers) = get_html(&app, "/").await;
 
     assert_eq!(status, StatusCode::OK);
-    assert!(body.contains("One guest list for your"), "the headline");
+    assert!(body.contains("Let's celebrate your"), "the headline");
     assert!(body.contains("product launch"), "the rotating event type");
     assert!(body.contains("Work with us"), "the way in");
     assert!(

@@ -85,8 +85,8 @@
 
 /* --- the rotating event type --------------------------------------------- */
 /* One word slot on the headline that cycles through what we run: wedding,
-   gala, launch… An invisible sizer holds the box at the widest word so the
-   line never reflows as the words swap. No JavaScript — five stacked words,
+   party, birthday… An invisible sizer holds the box at the widest word so the
+   line never reflows as the words swap. No JavaScript — six stacked words,
    each fading in on its turn. */
 .lp-rotator { position: relative; display: inline-block; vertical-align: bottom; }
 .lp-rot-sizer { visibility: hidden; }
@@ -104,23 +104,26 @@
 @media (prefers-reduced-motion: no-preference) {
   /* Fade in on cue AND keep the sheen sweeping — different properties, so both
      run at once and the words glitter like the rest of the gold. */
-  .lp-rot { animation: lp-rotword 14s infinite, lp-sheen 6s ease-in-out infinite alternate; }
+  .lp-rot { animation: lp-rotword 16.8s infinite, lp-sheen 6s ease-in-out infinite alternate; }
   .lp-rot:nth-of-type(1) { animation-delay: 0s; }
   .lp-rot:nth-of-type(2) { animation-delay: 2.8s; }
   .lp-rot:nth-of-type(3) { animation-delay: 5.6s; }
   .lp-rot:nth-of-type(4) { animation-delay: 8.4s; }
   .lp-rot:nth-of-type(5) { animation-delay: 11.2s; }
+  .lp-rot:nth-of-type(6) { animation-delay: 14s; }
 }
 /* No motion: the first word simply stays. */
 @media (prefers-reduced-motion: reduce) {
   .lp-rot:first-of-type { opacity: 1; }
 }
+/* Six words share a 16.8s loop, so each owns a 2.8s slot = 16.67%. It fades in,
+   holds, then fades out exactly as the next word's slot begins — no overlap. */
 @keyframes lp-rotword {
-  0%   { opacity: 0; transform: translateY(0.14em); }
-  3.5% { opacity: 1; transform: none; }
-  16%  { opacity: 1; transform: none; }
-  20%  { opacity: 0; transform: translateY(-0.14em); }
-  100% { opacity: 0; transform: translateY(-0.14em); }
+  0%      { opacity: 0; transform: translateY(0.14em); }
+  2.9%    { opacity: 1; transform: none; }
+  13.3%   { opacity: 1; transform: none; }
+  16.67%  { opacity: 0; transform: translateY(-0.14em); }
+  100%    { opacity: 0; transform: translateY(-0.14em); }
 }
 
 .lp { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
@@ -798,6 +801,7 @@
 }
 .lp-foot a { color: var(--muted); text-decoration: none; }
 .lp-foot a:hover { color: var(--text); }
+.lp-foot-links { display: flex; gap: 20px; }
 
 /* --- wider than a phone --------------------------------------------------- */
 
@@ -871,7 +875,7 @@
   <div class="lp-hero-grid">
     <div>
       <p class="lp-eyebrow">Weddings · Corporate · Social</p>
-      <h1 class="lp-h1">One guest list for your<br><span class="lp-rotator" aria-label="wedding, gala, product launch, birthday, burial — every kind of event"><span class="lp-rot-sizer" aria-hidden="true">product launch</span><b class="lp-rot lp-gilt" aria-hidden="true">wedding</b><b class="lp-rot lp-gilt" aria-hidden="true">gala</b><b class="lp-rot lp-gilt" aria-hidden="true">product launch</b><b class="lp-rot lp-gilt" aria-hidden="true">birthday</b><b class="lp-rot lp-gilt" aria-hidden="true">burial</b></span></h1>
+      <h1 class="lp-h1">Let's celebrate your<br><span class="lp-rotator" aria-label="wedding, party, birthday, gala, product launch, burial"><span class="lp-rot-sizer" aria-hidden="true">product launch</span><b class="lp-rot lp-gilt" aria-hidden="true">wedding</b><b class="lp-rot lp-gilt" aria-hidden="true">party</b><b class="lp-rot lp-gilt" aria-hidden="true">birthday</b><b class="lp-rot lp-gilt" aria-hidden="true">gala</b><b class="lp-rot lp-gilt" aria-hidden="true">product launch</b><b class="lp-rot lp-gilt" aria-hidden="true">burial</b></span> together</h1>
       <p class="lp-lede">
         A three-part wedding, a product launch, a burial, a 60th — every part of
         your event on one list that keeps up. Guests reply on WhatsApp and walk
@@ -1223,7 +1227,10 @@
   <div class="lp-foot">
     <span class="wordmark"><b>106</b> Events</span>
     <span>Made in Lagos for events that run all weekend.</span>
-    <a href="/login">Staff sign in</a>
+    <span class="lp-foot-links">
+      <a href="https://www.instagram.com/106events" target="_blank" rel="noopener me">Instagram</a>
+      <a href="/login">Staff sign in</a>
+    </span>
   </div>
 </div>
 {% endblock %}
