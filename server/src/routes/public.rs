@@ -39,8 +39,9 @@ pub fn router() -> Router<AppState> {
         .route("/e/{slug}", get(event_page))
         .route("/r/{token}", get(rsvp_page).post(rsvp_submit))
         .route("/q/{code}", get(qr_image))
-        .route("/static/favicon-v1.svg", get(favicon))
-        .route("/static/og-default-v1.png", get(og_default))
+        .route("/static/favicon-v2.png", get(favicon))
+        .route("/static/apple-touch-icon-v1.png", get(apple_touch_icon))
+        .route("/static/og-default-v2.png", get(og_default))
         .route("/static/img/logo-v1.webp", get(img_logo))
         .route("/static/img/hero-v3.webp", get(img_hero))
         .route("/static/img/weddings-v1.webp", get(img_weddings))
@@ -118,7 +119,7 @@ fn landing_meta(state: &AppState) -> Meta {
         og_description: "Guest lists, RSVPs, reminders and QR check-in at the door — \
                          for weddings, corporate events and every celebration in between."
             .into(),
-        og_image: format!("{base}/static/og-default-v1.png"),
+        og_image: format!("{base}/static/og-default-v2.png"),
         og_image_alt: "106 Events".into(),
         og_image_dims: Some(Dims { width: 1200, height: 630 }),
         canonical_url: base.clone(),
@@ -279,7 +280,7 @@ async fn event_page(
     let (og_image, og_image_alt, og_image_dims) = match &cover_image_url {
         Some(cover) => (cover.clone(), event.title.clone(), None),
         None => (
-            format!("{}/static/og-default-v1.png", state.config.public_base_url),
+            format!("{}/static/og-default-v2.png", state.config.public_base_url),
             "106 Events".to_string(),
             Some(Dims { width: 1200, height: 630 }),
         ),
@@ -488,7 +489,7 @@ async fn load_rsvp_page(
             page_title: format!("RSVP · {} · 106 Events", event.title),
             og_title: format!("RSVP · {}", event.title),
             og_description: "Let them know if you'll be there.".into(),
-            og_image: format!("{}/static/og-default-v1.png", state.config.public_base_url),
+            og_image: format!("{}/static/og-default-v2.png", state.config.public_base_url),
             og_image_alt: "106 Events".into(),
             og_image_dims: Some(Dims { width: 1200, height: 630 }),
             canonical_url: format!("{}/r/{}", state.config.public_base_url, token),
@@ -587,7 +588,7 @@ fn not_found_page(state: &AppState) -> Response {
             page_title: "Not found · 106 Events".into(),
             og_title: "106 Events".into(),
             og_description: "This invitation isn't here.".into(),
-            og_image: format!("{}/static/og-default-v1.png", state.config.public_base_url),
+            og_image: format!("{}/static/og-default-v2.png", state.config.public_base_url),
             og_image_alt: "106 Events".into(),
             og_image_dims: Some(Dims { width: 1200, height: 630 }),
             canonical_url: state.config.public_base_url.clone(),
@@ -653,11 +654,18 @@ fn asset(bytes: &'static [u8], content_type: &'static str) -> Response {
 }
 
 async fn favicon() -> Response {
-    asset(include_bytes!("../../static/favicon.svg"), "image/svg+xml")
+    asset(include_bytes!("../../static/favicon-v2.png"), "image/png")
+}
+
+async fn apple_touch_icon() -> Response {
+    asset(
+        include_bytes!("../../static/apple-touch-icon-v1.png"),
+        "image/png",
+    )
 }
 
 async fn og_default() -> Response {
-    asset(include_bytes!("../../static/og-default.png"), "image/png")
+    asset(include_bytes!("../../static/og-default-v2.png"), "image/png")
 }
 
 // Landing photography. Licensed for this use: the hero and category shots are
