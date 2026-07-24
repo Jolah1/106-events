@@ -77,7 +77,7 @@ async fn event_page_emits_link_preview_tags(pool: PgPool) {
         r#"<meta property="og:title" content="Tolu &#38; Emeka&#39;s Wedding">"#.to_string(),
         r#"<meta property="og:description" content="Join us as two families become one.">"#.to_string(),
         format!(r#"<meta property="og:url" content="http://localhost:8080/e/{slug}">"#),
-        r#"<meta property="og:image" content="http://localhost:8080/static/og-default-v1.png">"#.to_string(),
+        r#"<meta property="og:image" content="http://localhost:8080/static/og-default-v2.png">"#.to_string(),
         r#"<meta property="og:image:width" content="1200">"#.to_string(),
         r#"<meta property="og:image:height" content="630">"#.to_string(),
         r#"<meta name="twitter:card" content="summary_large_image">"#.to_string(),
@@ -207,7 +207,7 @@ async fn cover_image_must_be_an_http_url(pool: PgPool) {
     // The page for that event still renders, with the default preview image.
     let (status, html, _) = get_html(&app, &format!("/e/{slug}")).await;
     assert_eq!(status, StatusCode::OK);
-    assert!(html.contains("og-default-v1.png"));
+    assert!(html.contains("og-default-v2.png"));
 }
 
 #[sqlx::test]
@@ -241,8 +241,9 @@ async fn static_assets_are_served_immutably(pool: PgPool) {
     let app = app(pool.clone());
 
     for (path, content_type) in [
-        ("/static/og-default-v1.png", "image/png"),
-        ("/static/favicon-v1.svg", "image/svg+xml"),
+        ("/static/og-default-v2.png", "image/png"),
+        ("/static/favicon-v2.png", "image/png"),
+        ("/static/apple-touch-icon-v1.png", "image/png"),
         ("/static/fonts/fraunces-latin-v1.woff2", "font/woff2"),
         ("/static/fonts/fraunces-latin-ext-v1.woff2", "font/woff2"),
         ("/static/fonts/fraunces-vietnamese-v1.woff2", "font/woff2"),
